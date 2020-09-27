@@ -1,4 +1,13 @@
 
-world = 'ZA WARUDO'
+from flask import Flask
+app = Flask(__name__)
 
-print(f'Hello {world}');
+
+@app.route('/')
+def hello():
+    world = 'ZA WARUDO'
+    return (f'Hello {world}');
+
+
+if __name__=='__main__':
+    app.run()
