@@ -14,7 +14,7 @@
 Установите зависимости:\
 Из папки-корня проекта (туда где лежит README.md) запустите команду:\
 Для Windows:\
-`pip install -r requirements.txt`
+`pip install -r requirements.txt`\
 Для Mac или Linux:\
 `pip3 install -r requirements.txt`
 
@@ -23,7 +23,7 @@
 
 Из папки-корня проекта (туда где лежит README.md) запустите команду:\
 На Windows:\
-`export FLASK_APP=webapp && export FLASK_ENV=development && set FLASK_DEBUG=1 && flask run`
+`export FLASK_APP=webapp && export FLASK_ENV=development && set FLASK_DEBUG=1 && flask run`\
 На Mac или Linux:\
 `export FLASK_APP=webapp && export FLASK_ENV=development && flask run`
 
