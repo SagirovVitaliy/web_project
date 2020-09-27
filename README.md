@@ -9,7 +9,7 @@
 ---------------------------
 
 На ваш тестовый компьютер склонируйте себе этот Git-репозиторий:\
-`git clone https://github.com/SagirovVitaliy/web_project.git`\
+`git clone https://github.com/SagirovVitaliy/web_project.git`
 
 Установите зависимости:\
 Из папки-корня проекта (туда где лежит README.md) запустите команду:\
