@@ -1,0 +1,2 @@
+
+DEMO_WORLD = 'ZA WARUDO'
