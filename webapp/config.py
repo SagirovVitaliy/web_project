@@ -1,2 +1,7 @@
+import os
 
-DEMO_WORLD = 'ZA WARUDO'
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, '..', 'webapp.db')
+
+SQLALCHEMY_TRACK_MODIFICATIONS = False
