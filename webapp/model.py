@@ -55,7 +55,7 @@ class Tag(db.Model):
 
 class Task_status(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    task = db.Column(db.String(), nullable=False)
+    status = db.Column(db.String(), nullable=False)
 
 
 class Task(db.Model):
