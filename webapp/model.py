@@ -63,7 +63,7 @@ class Task(db.Model):
     task_name = db.Column(db.String())
     description = db.Column(db.String(), nullable=False)
     price = db.Column(db.Integer())
-    deadline = db.Column(db.String)
+    deadline = db.Column(db.DateTime)
     status = db.Column(
         db.Integer(),
         db.ForeignKey('task_status.id', ondelete='CASCADE')
