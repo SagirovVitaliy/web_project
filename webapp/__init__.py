@@ -11,5 +11,6 @@ def create_app():
 
     @app.route('/')
     def index():
-        return render_template('hello_world.html')
+        world = 'word'
+        return render_template('hello_world.html', world=world)
     return app
