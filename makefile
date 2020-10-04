@@ -7,7 +7,7 @@ database_files = webapp.db
 	apply_migration \
 	clean
 
-# Подготовить сервера к запуску.
+# Подготовить сервер к запуску.
 make_stage:
 	pip3 install -r requirements.txt
 	rm -f ${database_files} && \
