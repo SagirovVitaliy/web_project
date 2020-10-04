@@ -9,7 +9,7 @@ database_files = webapp.db
 
 # Подготовить сервер к запуску.
 make_stage:
-	pip3 install -r requirements.txt
+	pip3 install -r requirements.txt && \
 	rm -f ${database_files} && \
 	export FLASK_APP=webapp && \
 	export FLASK_ENV= && \
