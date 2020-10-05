@@ -13,22 +13,29 @@
 
 Установите зависимости:\
 Из папки-корня проекта (туда где лежит README.md) запустите команду:\
-Для Windows:\
-`pip install -r requirements.txt`\
 Для Mac или Linux:\
-`pip3 install -r requirements.txt`
+`make make_stage`
 
 Запуск тестового сервера
 ------------------------
 
 Из папки-корня проекта (туда где лежит README.md) запустите команду:\
-На Windows:\
-`export FLASK_APP=webapp && export FLASK_ENV=development && set FLASK_DEBUG=1 && flask run`\
 На Mac или Linux:\
-`export FLASK_APP=webapp && export FLASK_ENV=development && flask run`
+`make run`
 
 После того как сервер запущен, на вашем тестовом компьютере войдите в браузер и
 перейдите на ссылку\
 http://localhost:5000
 
 Поздравляем, вы зашли на главную страницу нашего тестового сервера!
+
+Команды для миграций Базы Данных:
+---------------------------------
+
+Создать файл миграции на основе текущих моделей проекта:\
+На Mac или Linux:\
+`make make_freshest_migration`
+
+Применить к Базе Данных самую свежую миграцию:\
+На Mac или Linux:\
+`make apply_migration`
