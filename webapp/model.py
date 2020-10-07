@@ -85,4 +85,4 @@ class Task(db.Model):
         )
 
     def __repr__(self):
-        return '<Task {} {}>'.format(self.id, self.task_name)
+        return '{} {}'.format(self.id, self.task_name)

@@ -21,25 +21,14 @@ def create_app():
         title = 'Создание заказа'
         task_form = Task_form()
         return render_template('create_task.html', title=title, form=task_form)
-    
+
     @app.route('/process_create_task', methods=['POST'])
     def process_create_task():
         task_form = Task_form()
+        
         if task_form.validate_on_submit():
-            task_name = Task(task_name=task_form.task_name.data)
+            task_name = Task(task_name=task_form.task_name.data, description=task_form.description.data, price=task_form.price.data, deadline=parse(task_form.deadline.data))
             db.session.add(task_name)
-            db.session.commit()
-
-            description = Task(description=task_form.description.data)
-            db.session.add(description)
-            db.session.commit()
-
-            price = Task(price=task_form.price.data)
-            db.session.add(price)
-            db.session.commit()
-            
-            deadline = Task(deadline=parse(task_form.deadline.data))
-            db.session.add(deadline)
             db.session.commit()
             
             status = Task_status(status='created')
@@ -47,9 +36,30 @@ def create_app():
             db.session.commit()
 
             flash('Вы успешно создали заказ!')
-            return redirect(url_for('index'))
-        
+            return redirect(url_for('personal_area_customer'))
+
         flash('Введите все данные!')
         return redirect(url_for('create_task'))
+
+    @app.route('/personal_area_customer', methods=['GET', 'POST'])
+    def personal_area_customer():
+        title = 'Все заказы'
+        task_name = Task.query.order_by(Task.id.desc()).all()
+        task_form = Task_form()
+        if task_form.validate_on_submit():
+
+            status = Task_status(status='published')
+            db.session.add(status)
+            db.session.commit()
+
+            flash('Заказ успешно опубликован')
+            return redirect(url_for('personal_area_customer/published'))
+
+        return render_template('personal_area_customer.html', title=title, task_name=task_name, form=task_form)
+
+    @app.route('/personal_area_customer_published')
+    def published():
+        title = 'Опубликованные заказы'
+        return render_template('personal_area_customer_published.html', title=title)
 
     return app

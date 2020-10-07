@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, IntegerField, DateTimeField
+from wtforms import StringField, PasswordField, SubmitField, IntegerField
 from wtforms.validators import DataRequired
 
 
@@ -13,5 +13,6 @@ class Task_form(FlaskForm):
     task_name = StringField('Название проекта', validators=[DataRequired()])
     description = StringField('Описание', validators=[DataRequired()])
     price = IntegerField('Цена', validators=[DataRequired()])
-    deadline = DateTimeField('Дата завершения проекта')
+    deadline = StringField('Дата завершения проекта')
     submit = SubmitField('Создать проект')
+    submit_published = SubmitField('Опубликовать проект')
