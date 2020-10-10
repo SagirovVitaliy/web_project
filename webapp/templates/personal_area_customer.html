@@ -13,16 +13,8 @@
       <div class="row">
             <div class="col-8">
               {% for task in task_name %}
-                <h3>{{ task }}</h3>
+                <h3>{{ task_name }}</h3>
               {% endfor %}
-
-              <form action="{{ url_for( 'personal_area_customer' ) }}" method="POST">
-                {{ form.hidden_tag() }}
-                <div>
-                {{ form.submit_published }}
-                </div>
-              </form>
-              
             </div>
 
             <div class="col-4">

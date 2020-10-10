@@ -63,7 +63,6 @@ class Task(db.Model):
     task_name = db.Column(db.String())
     description = db.Column(db.String(), nullable=False)
     price = db.Column(db.Integer())
-    deadline = db.Column(db.DateTime)
     status = db.Column(
         db.Integer(),
         db.ForeignKey('task_status.id', ondelete='CASCADE')
@@ -85,4 +84,4 @@ class Task(db.Model):
         )
 
     def __repr__(self):
-        return '{} {}'.format(self.id, self.task_name)
+        return '{} {} {}'.format(self.id, self.task_name, self.status)

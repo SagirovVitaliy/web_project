@@ -40,7 +40,7 @@ def get_data(data):
         db.session.commit()
 
     for value in data['task']:
-        task = Task(task_name=value['task_name'], description=value['description'], price=value['price'], deadline=parse(value['deadline']))
+        task = Task(task_name=value['task_name'], description=value['description'], price=value['price'])
         db.session.add(task)
         db.session.commit()
 
