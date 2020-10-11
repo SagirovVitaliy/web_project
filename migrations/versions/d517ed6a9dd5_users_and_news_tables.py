@@ -1,8 +1,8 @@
 """users and news tables
 
-Revision ID: a700d1c41018
+Revision ID: d517ed6a9dd5
 Revises: 
-Create Date: 2020-10-02 22:34:32.633696
+Create Date: 2020-10-11 13:54:54.147554
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a700d1c41018'
+revision = 'd517ed6a9dd5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -57,7 +57,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['email'], ['email.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['phone'], ['phone.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['role'], ['user_role.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['tag'], ['user.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['tag'], ['tag.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
@@ -66,7 +66,6 @@ def upgrade():
     sa.Column('task_name', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=False),
     sa.Column('price', sa.Integer(), nullable=True),
-    sa.Column('deadline', sa.DateTime(), nullable=True),
     sa.Column('status', sa.Integer(), nullable=True),
     sa.Column('customer', sa.Integer(), nullable=True),
     sa.Column('freelancer', sa.Integer(), nullable=True),
@@ -74,7 +73,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['customer'], ['user.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['freelancer'], ['user.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['status'], ['task_status.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['tag'], ['user.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['tag'], ['tag.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

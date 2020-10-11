@@ -41,7 +41,7 @@ class User(db.Model):
 
     tag = db.Column(
         db.Integer(),
-        db.ForeignKey('user.id', ondelete='CASCADE')
+        db.ForeignKey('tag.id', ondelete='CASCADE')
         )
 
     def __repr__(self):
@@ -80,7 +80,7 @@ class Task(db.Model):
 
     tag = db.Column(
         db.Integer(),
-        db.ForeignKey('user.id', ondelete='CASCADE')
+        db.ForeignKey('tag.id', ondelete='CASCADE')
         )
 
     def __repr__(self):

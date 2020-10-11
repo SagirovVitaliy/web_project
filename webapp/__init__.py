@@ -1,6 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for
 from flask_migrate import Migrate
-from webapp.model import db, Task, Task_status
+from webapp.model import db, Task, Task_status, Tag, User, User_role
 from webapp.forms import Task_form
 
 
@@ -26,8 +26,12 @@ def create_app():
         task_form = Task_form()
         
         if task_form.validate_on_submit():
-            task_name = Task(task_name=task_form.task_name.data, description=task_form.description.data, 
-            price=task_form.price.data, status=Task_status.query.filter(Task_status.status == 'created').one())
+            print(task_form.price.data)
+            task_name = Task(task_name=task_form.task_name.data, description=task_form.description.data,
+            price=task_form.price.data, status=Task_status.query.filter(Task_status.status == 'created').one(),
+            tag=Tag.query.filter(Tag.tag == 'Разведение ежей').one(),
+            freelancer=User_role.query.filter(User_role.role == 'freelancer').one(),
+            customer=User_role.query.filter(User_role.role == 'customer').one())
             db.session.add(task_name)
             db.session.commit()
             
