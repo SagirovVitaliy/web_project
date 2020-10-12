@@ -6,16 +6,25 @@ db = SQLAlchemy()
 class Email(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(), unique=True)
+    
+    def __repr__(self):
+        return'Email {}'.format(self.email)
 
 
 class Phone(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.Integer, unique=True)
+    
+    def __repr__(self):
+        return'Phone {}'.format(self.phone)
 
 
-class User_role(db.Model):
+class UserRole(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     role = db.Column(db.String(), nullable=False)
+    
+    def __repr__(self):
+        return'Role {}'.format(self.role)
 
 
 class User(db.Model):
@@ -26,7 +35,7 @@ class User(db.Model):
 
     role = db.Column(
         db.Integer(),
-        db.ForeignKey('user_role.id', ondelete='CASCADE') 
+        db.ForeignKey('userrole.id', ondelete='CASCADE') 
         )
 
     email = db.Column(
@@ -51,11 +60,17 @@ class User(db.Model):
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(20))
+    
+    def __repr__(self):
+        return'Tag {}'.format(self.tag)
 
 
-class Task_status(db.Model):
+class TaskStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(), nullable=False)
+
+    def __repr__(self):
+        return'Status {} {}'.format(self.status, self.id)
 
 
 class Task(db.Model):
@@ -65,7 +80,7 @@ class Task(db.Model):
     price = db.Column(db.Integer())
     status = db.Column(
         db.Integer(),
-        db.ForeignKey('task_status.id', ondelete='CASCADE')
+        db.ForeignKey('TaskStatus.id', ondelete='CASCADE')
     ) 
 
     customer = db.Column(
@@ -84,4 +99,4 @@ class Task(db.Model):
         )
 
     def __repr__(self):
-        return '{} {} {}'.format(self.id, self.task_name, self.status)
+        return '{} {} {} {}'.format(self.id, self.task_name, self.status, self.price)

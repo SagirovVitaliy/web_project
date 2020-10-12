@@ -1,7 +1,7 @@
 from flask import Flask, render_template, flash, redirect, url_for
 from flask_migrate import Migrate
-from webapp.model import db, Task, Task_status, Tag, User, User_role
-from webapp.forms import Task_form
+from webapp.model import db, Task, TaskStatus, Tag, User, UserRole
+from webapp.forms import TaskForm, ChoiseForm
 
 
 def create_app():
@@ -18,20 +18,20 @@ def create_app():
     @app.route('/create_task')
     def create_task():
         title = 'Создание заказа'
-        task_form = Task_form()
+        task_form = TaskForm()
         return render_template('create_task.html', title=title, form=task_form)
 
     @app.route('/process_create_task', methods=['POST'])
     def process_create_task():
-        task_form = Task_form()
-        
+        task_form = TaskForm()
+        status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
+        tag = Tag.query.filter(Tag.tag == 'Разведение ежей').one()
+        freelancer = UserRole.query.filter(UserRole.role == 'freelancer').one()
+        customer = UserRole.query.filter(UserRole.role == 'customer').one()
+
         if task_form.validate_on_submit():
-            print(task_form.price.data)
             task_name = Task(task_name=task_form.task_name.data, description=task_form.description.data,
-            price=task_form.price.data, status=Task_status.query.filter(Task_status.status == 'created').one(),
-            tag=Tag.query.filter(Tag.tag == 'Разведение ежей').one(),
-            freelancer=User_role.query.filter(User_role.role == 'freelancer').one(),
-            customer=User_role.query.filter(User_role.role == 'customer').one())
+            price=task_form.price.data, status=status.id, tag=tag.id, freelancer=freelancer.id, customer=customer.id)
             db.session.add(task_name)
             db.session.commit()
             
@@ -41,11 +41,12 @@ def create_app():
         flash('Введите все данные!')
         return redirect(url_for('create_task'))
 
-    @app.route('/personal_area_customer')
+    @app.route('/personal_area_customer', methods=['GET', 'POST'])
     def personal_area_customer():
         title = 'Все заказы'
         task_name = Task.query.all()
-       
-        return render_template('personal_area_customer.html', title=title, task_name=task_name)
+        form = ChoiseForm()
+
+        return render_template('personal_area_customer.html', title=title, task_name=task_name, form=form)
 
     return app
