@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, IntegerField, DateField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, IntegerField, DateField, SelectField, TextAreaField
 from wtforms.validators import DataRequired
 
 
@@ -11,10 +11,12 @@ class UserForm(FlaskForm):
 
 class TaskForm(FlaskForm):
     task_name = StringField('Название проекта', validators=[DataRequired()])
-    description = StringField('Описание', validators=[DataRequired()])
+    description = TextAreaField('Описание', validators=[DataRequired()])
     price = IntegerField('Цена', validators=[DataRequired()])
+    deadline = DateField('Дата завершения проекта', format='%d.%m.%Y')
     submit = SubmitField('Создать проект')
 
 
 class ChoiseForm(FlaskForm):
-    status = SelectField('Выбрать статус', choices=[('kek', 'lol'), ('lol', 'kek')])
+    status = SelectField('Выбрать статус', choices=[])
+    submit = SubmitField('Сменить статус')

@@ -44,7 +44,7 @@ class User(db.Model):
         )
 
     phone = db.Column(
-        db.Integer,
+        db.Integer(),
         db.ForeignKey('phone.id', ondelete='CASCADE')
         )
 
@@ -78,6 +78,7 @@ class Task(db.Model):
     task_name = db.Column(db.String())
     description = db.Column(db.String(), nullable=False)
     price = db.Column(db.Integer())
+    deadline = db.Column(db.Date())
     status = db.Column(
         db.Integer(),
         db.ForeignKey('TaskStatus.id', ondelete='CASCADE')

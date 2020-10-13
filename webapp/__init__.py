@@ -30,8 +30,14 @@ def create_app():
         customer = UserRole.query.filter(UserRole.role == 'customer').one()
 
         if task_form.validate_on_submit():
-            task_name = Task(task_name=task_form.task_name.data, description=task_form.description.data,
-            price=task_form.price.data, status=status.id, tag=tag.id, freelancer=freelancer.id, customer=customer.id)
+            task_name = Task(
+            task_name=task_form.task_name.data, 
+            description=task_form.description.data,
+            price=task_form.price.data,
+            deadline=task_form.deadline.data, 
+            status=status.id, tag=tag.id, 
+            freelancer=freelancer.id, 
+            customer=customer.id)
             db.session.add(task_name)
             db.session.commit()
             
@@ -46,6 +52,65 @@ def create_app():
         title = 'Все заказы'
         task_name = Task.query.all()
         form = ChoiseForm()
+        form.status.choices = [g.status for g in TaskStatus.query.all()]
+
+        if form.validate_on_submit():
+            if form.status.data == 'created':
+                status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
+                status = Task(status=status.id)
+                db.session.add(status)
+                db.session.commit()
+                
+                flash('Статус заказа изменён на created')
+
+            if form.status.data == 'published':
+                status = TaskStatus.query.filter(TaskStatus.status == 'published').one()
+                status = Task(status=status.id)
+                db.session.add(status)
+                db.session.commit()
+                
+                flash('Статус заказа изменён на published')
+
+            if form.status.data == 'freelancers_detected':
+                status = TaskStatus.query.filter(TaskStatus.status == 'freelancers_detected').one()
+                status = Task(status=status.id)
+                db.session.add(status)
+                db.session.commit()
+                
+                flash('Статус заказа изменён на freelancers_detected')
+
+             if form.status.data == 'in_work':
+                status = TaskStatus.query.filter(TaskStatus.status == 'in_work').one()
+                status = Task(status=status.id)
+                db.session.add(status)
+                db.session.commit()
+                
+                flash('Статус заказа изменён на in_work')
+
+             if form.status.data == 'stopped':
+                status = TaskStatus.query.filter(TaskStatus.status == 'stopped').one()
+                status = Task(status=status.id)
+                db.session.add(status)
+                db.session.commit()
+                
+                flash('Статус заказа изменён на stopped')
+
+             if form.status.data == 'in_review':
+                status = TaskStatus.query.filter(TaskStatus.status == 'in_review').one()
+                status = Task(status=status.id)
+                db.session.add(status)
+                db.session.commit()
+                
+                flash('Статус заказа изменён на in_review')
+
+            if form.status.data == 'done':
+                status = TaskStatus.query.filter(TaskStatus.status == 'done').one()
+                status = Task(status=status.id)
+                db.session.add(status)
+                db.session.commit()
+                
+                flash('Статус заказа изменён на done')
+            
 
         return render_template('personal_area_customer.html', title=title, task_name=task_name, form=form)
 
