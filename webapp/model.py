@@ -19,7 +19,7 @@ class Phone(db.Model):
         return'Phone {}'.format(self.phone)
 
 
-class UserRole(db.Model):
+class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     role = db.Column(db.String(), nullable=False)
     
@@ -35,7 +35,7 @@ class User(db.Model):
 
     role = db.Column(
         db.Integer(),
-        db.ForeignKey('userrole.id', ondelete='CASCADE') 
+        db.ForeignKey('role.id', ondelete='CASCADE') 
         )
 
     email = db.Column(
@@ -57,20 +57,20 @@ class User(db.Model):
         return'<User {} {}>'.format(self.id, self.username)
 
 
-class Tag(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    tag = db.Column(db.String(20))
-    
-    def __repr__(self):
-        return'Tag {}'.format(self.tag)
-
-
-class TaskStatus(db.Model):
+class Status(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(), nullable=False)
 
     def __repr__(self):
-        return'Status {} {}'.format(self.status, self.id)
+        return'Status {} {}'.format(self.id, self.status)
+
+
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tag = db.Column(db.String(20))
+
+    def __repr__(self):
+        return'Tag {}'.format(self.tag)
 
 
 class Task(db.Model):
@@ -81,17 +81,17 @@ class Task(db.Model):
     deadline = db.Column(db.Date())
     status = db.Column(
         db.Integer(),
-        db.ForeignKey('TaskStatus.id', ondelete='CASCADE')
-    ) 
+        db.ForeignKey('status.id', ondelete='CASCADE')
+        ) 
 
     customer = db.Column(
         db.Integer(),
-        db.ForeignKey('user.id', ondelete='CASCADE') 
+        db.ForeignKey('user.id', ondelete='CASCADE')
         )
 
     freelancer = db.Column(
         db.Integer(),
-        db.ForeignKey('user.id', ondelete='CASCADE') 
+        db.ForeignKey('user.id', ondelete='CASCADE')
         )
 
     tag = db.Column(
@@ -100,4 +100,4 @@ class Task(db.Model):
         )
 
     def __repr__(self):
-        return '{} {} {} {}'.format(self.id, self.task_name, self.status, self.price)
+        return '{} {} {} {} {}'.format(self.id, self.task_name, self.status, self.price, self.deadline)

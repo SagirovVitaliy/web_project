@@ -1,6 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for
 from flask_migrate import Migrate
-from webapp.model import db, Task, TaskStatus, Tag, User, UserRole
+from webapp.model import db, Email, Phone, Task, Status, Tag, User, Role
 from webapp.forms import TaskForm, ChoiseForm
 
 
@@ -24,10 +24,10 @@ def create_app():
     @app.route('/process_create_task', methods=['POST'])
     def process_create_task():
         task_form = TaskForm()
-        status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
+        status = Status.query.filter(Status.status == 'created').one()
         tag = Tag.query.filter(Tag.tag == 'Разведение ежей').one()
-        freelancer = UserRole.query.filter(UserRole.role == 'freelancer').one()
-        customer = UserRole.query.filter(UserRole.role == 'customer').one()
+        freelancer = Role.query.filter(Role.role == 'freelancer').one()
+        customer = Role.query.filter(Role.role == 'customer').one()
 
         if task_form.validate_on_submit():
             task_name = Task(
@@ -35,7 +35,8 @@ def create_app():
             description=task_form.description.data,
             price=task_form.price.data,
             deadline=task_form.deadline.data, 
-            status=status.id, tag=tag.id, 
+            status=status.id, 
+            tag=tag.id, 
             freelancer=freelancer.id, 
             customer=customer.id)
             db.session.add(task_name)
@@ -52,65 +53,21 @@ def create_app():
         title = 'Все заказы'
         task_name = Task.query.all()
         form = ChoiseForm()
-        form.status.choices = [g.status for g in TaskStatus.query.all()]
+        form.status.choices = [g.status for g in Status.query.all()[:2]]
 
         if form.validate_on_submit():
-            if form.status.data == 'created':
-                status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
-                status = Task(status=status.id)
-                db.session.add(status)
-                db.session.commit()
-                
-                flash('Статус заказа изменён на created')
-
-            if form.status.data == 'published':
-                status = TaskStatus.query.filter(TaskStatus.status == 'published').one()
-                status = Task(status=status.id)
-                db.session.add(status)
-                db.session.commit()
-                
-                flash('Статус заказа изменён на published')
-
-            if form.status.data == 'freelancers_detected':
-                status = TaskStatus.query.filter(TaskStatus.status == 'freelancers_detected').one()
-                status = Task(status=status.id)
-                db.session.add(status)
-                db.session.commit()
-                
-                flash('Статус заказа изменён на freelancers_detected')
-
-             if form.status.data == 'in_work':
-                status = TaskStatus.query.filter(TaskStatus.status == 'in_work').one()
-                status = Task(status=status.id)
-                db.session.add(status)
-                db.session.commit()
-                
-                flash('Статус заказа изменён на in_work')
-
-             if form.status.data == 'stopped':
-                status = TaskStatus.query.filter(TaskStatus.status == 'stopped').one()
-                status = Task(status=status.id)
-                db.session.add(status)
-                db.session.commit()
-                
-                flash('Статус заказа изменён на stopped')
-
-             if form.status.data == 'in_review':
-                status = TaskStatus.query.filter(TaskStatus.status == 'in_review').one()
-                status = Task(status=status.id)
-                db.session.add(status)
-                db.session.commit()
-                
-                flash('Статус заказа изменён на in_review')
-
-            if form.status.data == 'done':
-                status = TaskStatus.query.filter(TaskStatus.status == 'done').one()
-                status = Task(status=status.id)
-                db.session.add(status)
-                db.session.commit()
-                
-                flash('Статус заказа изменён на done')
+            status = form.status.data
             
+            def update_status(status):
+                if form.status.data == status:
+                    task = Task.query.get(3) #в дальнейшем здесь будет id заказа
+                    task_status = Status.query.filter(Status.status == status).one()
+                    task.status = task_status.id
+                    db.session.commit()
+
+            print(update_status(status))
+
+            flash(f"Статус заказа изменён на {status}")
 
         return render_template('personal_area_customer.html', title=title, task_name=task_name, form=form)
 

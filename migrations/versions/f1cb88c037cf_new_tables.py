@@ -1,8 +1,8 @@
-"""users and news tables
+"""new tables
 
-Revision ID: 6db2ed25f669
+Revision ID: f1cb88c037cf
 Revises: 
-Create Date: 2020-10-13 00:41:52.731435
+Create Date: 2020-10-15 23:37:02.009237
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6db2ed25f669'
+revision = 'f1cb88c037cf'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -30,19 +30,19 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('phone')
     )
-    op.create_table('tag',
+    op.create_table('role',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('tag', sa.String(length=20), nullable=True),
+    sa.Column('role', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('task_status',
+    op.create_table('status',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('user_role',
+    op.create_table('tag',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('role', sa.String(), nullable=False),
+    sa.Column('tag', sa.String(length=20), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
@@ -56,7 +56,7 @@ def upgrade():
     sa.Column('tag', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['email'], ['email.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['phone'], ['phone.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['role'], ['user_role.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['role'], ['role.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['tag'], ['tag.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -66,13 +66,14 @@ def upgrade():
     sa.Column('task_name', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=False),
     sa.Column('price', sa.Integer(), nullable=True),
+    sa.Column('deadline', sa.Date(), nullable=True),
     sa.Column('status', sa.Integer(), nullable=True),
     sa.Column('customer', sa.Integer(), nullable=True),
     sa.Column('freelancer', sa.Integer(), nullable=True),
     sa.Column('tag', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['customer'], ['user.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['freelancer'], ['user.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['status'], ['task_status.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['status'], ['status.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['tag'], ['tag.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -84,9 +85,9 @@ def downgrade():
     op.drop_table('task')
     op.drop_index(op.f('ix_user_username'), table_name='user')
     op.drop_table('user')
-    op.drop_table('user_role')
-    op.drop_table('task_status')
     op.drop_table('tag')
+    op.drop_table('status')
+    op.drop_table('role')
     op.drop_table('phone')
     op.drop_table('email')
     # ### end Alembic commands ###
