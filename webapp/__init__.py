@@ -51,11 +51,11 @@ def create_app():
     @app.route('/personal_area_customer')
     def personal_area_customer():
         title = 'Все заказы'
-        task_name = Task.query.all()
+        tasks = Task.query.all()
         form = ChoiseForm()
         form.status.choices = [g.status for g in Status.query.all()[:2]]
 
-        return render_template('personal_area_customer.html', title=title, task_name=task_name, form=form)
+        return render_template('personal_area_customer.html', title=title, tasks=tasks, form=form)
 
     @app.route('/update_status/<int:task_id>', methods=['POST'])
     def update_status(task_id):
