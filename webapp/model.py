@@ -6,16 +6,25 @@ db = SQLAlchemy()
 class Email(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(), unique=True)
+    
+    def __repr__(self):
+        return'Email {}'.format(self.email)
 
 
 class Phone(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.Integer, unique=True)
+    
+    def __repr__(self):
+        return'Phone {}'.format(self.phone)
 
 
-class User_role(db.Model):
+class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     role = db.Column(db.String(), nullable=False)
+    
+    def __repr__(self):
+        return'Role {}'.format(self.role)
 
 
 class User(db.Model):
@@ -26,7 +35,7 @@ class User(db.Model):
 
     role = db.Column(
         db.Integer(),
-        db.ForeignKey('user_role.id', ondelete='CASCADE') 
+        db.ForeignKey('role.id', ondelete='CASCADE') 
         )
 
     email = db.Column(
@@ -35,27 +44,33 @@ class User(db.Model):
         )
 
     phone = db.Column(
-        db.Integer,
+        db.Integer(),
         db.ForeignKey('phone.id', ondelete='CASCADE')
         )
 
     tag = db.Column(
         db.Integer(),
-        db.ForeignKey('user.id', ondelete='CASCADE')
+        db.ForeignKey('tag.id', ondelete='CASCADE')
         )
 
     def __repr__(self):
         return'<User {} {}>'.format(self.id, self.username)
 
 
+class Status(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(), nullable=False)
+
+    def __repr__(self):
+        return'Status {} {}'.format(self.id, self.status)
+
+
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(20))
 
-
-class Task_status(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(), nullable=False)
+    def __repr__(self):
+        return'Tag {}'.format(self.tag)
 
 
 class Task(db.Model):
@@ -63,26 +78,26 @@ class Task(db.Model):
     task_name = db.Column(db.String())
     description = db.Column(db.String(), nullable=False)
     price = db.Column(db.Integer())
-    deadline = db.Column(db.DateTime)
+    deadline = db.Column(db.Date())
     status = db.Column(
         db.Integer(),
-        db.ForeignKey('task_status.id', ondelete='CASCADE')
-    ) 
+        db.ForeignKey('status.id', ondelete='CASCADE')
+        ) 
 
     customer = db.Column(
-        db.Integer(),
-        db.ForeignKey('user.id', ondelete='CASCADE') 
-        )
-
-    freelancer = db.Column(
-        db.Integer(),
-        db.ForeignKey('user.id', ondelete='CASCADE') 
-        )
-
-    tag = db.Column(
         db.Integer(),
         db.ForeignKey('user.id', ondelete='CASCADE')
         )
 
+    freelancer = db.Column(
+        db.Integer(),
+        db.ForeignKey('user.id', ondelete='CASCADE')
+        )
+
+    tag = db.Column(
+        db.Integer(),
+        db.ForeignKey('tag.id', ondelete='CASCADE')
+        )
+
     def __repr__(self):
-        return '<Task {} {}>'.format(self.id, self.task_name)
+        return '{} {} {} {} {}'.format(self.id, self.task_name, self.status, self.price, self.deadline)
