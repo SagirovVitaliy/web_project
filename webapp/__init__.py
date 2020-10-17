@@ -48,27 +48,28 @@ def create_app():
         flash('Введите все данные!')
         return redirect(url_for('create_task'))
 
-    @app.route('/personal_area_customer', methods=['GET', 'POST'])
+    @app.route('/personal_area_customer')
     def personal_area_customer():
         title = 'Все заказы'
         task_name = Task.query.all()
         form = ChoiseForm()
         form.status.choices = [g.status for g in Status.query.all()[:2]]
 
+        return render_template('personal_area_customer.html', title=title, task_name=task_name, form=form)
+
+    @app.route('/update_status/<int:task_id>', methods=['POST'])
+    def update_status(task_id):
+        form = ChoiseForm()
+        form.status.choices = [g.status for g in Status.query.all()[:2]]
+
         if form.validate_on_submit():
             status = form.status.data
-            
-            def update_status(status):
-                if form.status.data == status:
-                    task = Task.query.get(3) #в дальнейшем здесь будет id заказа
-                    task_status = Status.query.filter(Status.status == status).one()
-                    task.status = task_status.id
-                    db.session.commit()
-
-            print(update_status(status))
-
-            flash(f"Статус заказа изменён на {status}")
-
-        return render_template('personal_area_customer.html', title=title, task_name=task_name, form=form)
+            task = Task.query.get(task_id)
+            task_status = Status.query.filter(Status.status == status).one()
+            task.status = task_status.id
+            db.session.commit()
+                
+        flash(f"Статус заказа изменён на {status}")
+        return redirect(url_for('personal_area_customer'))
 
     return app
