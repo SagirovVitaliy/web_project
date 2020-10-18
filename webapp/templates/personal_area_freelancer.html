@@ -14,7 +14,6 @@
     <div class="container">
     <h1>{{ title }}</h1>
         <div class="row">
-
           <div class="col-8">
             {% with messages = get_flashed_messages() %}
                   {% if messages %}
@@ -25,24 +24,14 @@
                     </div>
                   {% endif %}
             {% endwith %}
-
-            {% for task in tasks %}
-              <h3>{{ task }}</h3>
-            {% endfor %}
           </div>
  
           <div class="col-4">
-            <form action="{{url_for( 'update_status', task_id=6 )}}" method="POST">
+            <form action="{{url_for( 'personal_area_freelancer', user_id=2 )}}" method="POST">
               {{ form.hidden_tag() }}
-              <div class="form-group">
-                {{ form.csrf_token }}
-                {{ form.status }}
-                {% for error in form.status.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-              </div>
               <div>
-                </br>
+                {{ form.csrf_token }}
+                {{ form.tasks }}
                 {{ form.submit }}
               </div>
             </form>

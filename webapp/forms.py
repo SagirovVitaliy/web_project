@@ -20,3 +20,18 @@ class TaskForm(FlaskForm):
 class ChoiseForm(FlaskForm):
     status = SelectField('Выбрать статус', choices=[])
     submit = SubmitField('Сменить статус')
+
+
+class FreelancerForm(FlaskForm):
+    tasks = SelectField('Выбрать заказ', choices=[])
+    submit = SubmitField('Отликнутся')
+
+
+class InWorkForm(FlaskForm):
+    tasks = SelectField('Выбрать заказ', choices=[])
+    submit = SubmitField('Выбрать')
+
+
+class InWorkFormTwo(FlaskForm):
+    freelancers = SelectField('Выбрать фрилансера', choices=[])
+    submit = SubmitField('Выбрать')
