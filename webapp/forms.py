@@ -22,7 +22,7 @@ class ChoiseForm(FlaskForm):
     submit = SubmitField('Сменить статус')
 
 
-class ChangeTaskStatus(FlaskForm):
+class ChangeTaskStatusForm(FlaskForm):
     task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
     status = SelectField('Новый статус', choices=[], validators=[DataRequired()])
     submit = SubmitField('Сменить статус')

@@ -1,7 +1,7 @@
 from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_migrate import Migrate
 from webapp.model import db, Email, Phone, Task, Status, Tag, User, Role
-from webapp.forms import TaskForm, ChoiseForm, ChangeTaskStatus
+from webapp.forms import TaskForm, ChoiseForm, ChangeTaskStatusForm
 
 
 def create_app():
@@ -81,7 +81,7 @@ def create_app():
         allowed_status_codes = [ 'in_review' ]
         status_list = Status.query.filter(Status.status.in_(allowed_status_codes))
 
-        form = ChangeTaskStatus()
+        form = ChangeTaskStatusForm()
         form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
         form.status.choices = [(g.id, g.status) for g in status_list]
 
@@ -131,7 +131,7 @@ def create_app():
         allowed_status_codes = [ 'in_work', 'done' ]
         status_list = Status.query.filter(Status.status.in_(allowed_status_codes))
 
-        form = ChangeTaskStatus()
+        form = ChangeTaskStatusForm()
         form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
         form.status.choices = [(g.id, g.status) for g in status_list]
 
