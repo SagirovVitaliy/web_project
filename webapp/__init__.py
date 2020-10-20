@@ -100,17 +100,15 @@ def create_app():
             title += ' POST'
             if form.validate_on_submit():
 
-                params = {
-                    'task_id': request.form.get('task_id'),
-                    'status': request.form.get('status'),
-                }
+                current_task = request.form.get('task_id');
+                new_status = request.form.get('status');
 
-                task = Task.query.get(params['task_id'])
-                task.status = params['status']
+                task = Task.query.get(current_task)
+                task.status = new_status
                 db.session.commit()
 
                 title += ' SUCCESS'
-                task = Task.query.get(params['task_id'])
+                task = Task.query.get(current_task)
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
@@ -152,17 +150,15 @@ def create_app():
             title += ' POST'
             if form.validate_on_submit():
 
-                params = {
-                    'task_id': request.form.get('task_id'),
-                    'status': request.form.get('status'),
-                }
+                current_task = request.form.get('task_id');
+                new_status = request.form.get('status');
 
-                task = Task.query.get(params['task_id'])
-                task.status = params['status']
+                task = Task.query.get(current_task)
+                task.status = new_status
                 db.session.commit()
 
                 title += ' SUCCESS'
-                task = Task.query.get(params['task_id'])
+                task = Task.query.get(current_task)
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
