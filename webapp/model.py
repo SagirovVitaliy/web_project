@@ -101,3 +101,15 @@ class Task(db.Model):
 
     def __repr__(self):
         return '{} {} {} {} {}'.format(self.id, self.task_name, self.status, self.price, self.deadline)
+
+class TaskComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String())
+
+    task = db.Column(
+        db.Integer(),
+        db.ForeignKey('task.id')
+        )
+
+    def __repr__(self):
+        return '{} {}'.format(self.id, self.task, self.content)
