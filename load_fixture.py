@@ -44,8 +44,8 @@ def get_data_from_file(file_name):
     return data
 
 
-def push_item_to_db(Class, dictionary_item, conversion_rules={}):
-    item = Class()
+def push_item_to_db(model_class, dictionary_item, conversion_rules={}):
+    item = model_class()
     for prop_name in dictionary_item:
 
         prop_value = dictionary_item[prop_name]
@@ -55,69 +55,71 @@ def push_item_to_db(Class, dictionary_item, conversion_rules={}):
         # '2020-10-10', а db ожидает объект даты. В таких случаях - присылайте
         # пометку о том что нужно сделать определённое преобразование.
         conversion_rule = conversion_rules.get(prop_name, None)
-        if (conversion_rule == 'date_iso8601'):
+        if conversion_rule == 'date_iso8601':
             prop_value = parse(prop_value)
 
-        item.__dict__[prop_name] = prop_value
+        setattr(item, prop_name, prop_value)
     print('New item:')
     print(item)
     db.session.add(item)
     db.session.commit()
 
 
+def push_table_to_db(
+        data,
+        table_name_in_data,
+        model_class,
+        conversion_rules={}
+    ):
+    table_elements = data.get(table_name_in_data, []);
+    for element in table_elements:
+        push_item_to_db(
+            model_class=model_class,
+            dictionary_item=element,
+            conversion_rules=conversion_rules
+        )
+
+
 def push_data_to_db(data):
 
-    list = data.get('email', []);
-    for element in list:
-        push_item_to_db(
-            Class=Email,
-            dictionary_item=element
-        )
-
-    list = data.get('phone', []);
-    for element in list:
-        push_item_to_db(
-            Class=Phone,
-            dictionary_item=element
-        )
-
-    list = data.get('user_role', []);
-    for element in list:
-        push_item_to_db(
-            Class=Role,
-            dictionary_item=element
-        )
-
-    list = data.get('user', []);
-    for element in list:
-        push_item_to_db(
-            Class=User,
-            dictionary_item=element
-        )
-
-    list = data.get('tag', []);
-    for element in list:
-        push_item_to_db(
-            Class=Tag,
-            dictionary_item=element
-        )
-
-    list = data.get('task_status', []);
-    for element in list:
-        push_item_to_db(
-            Class=Status,
-            dictionary_item=element
-        )
-
-    list = data.get('task', []);
-    for element in list:
-        push_item_to_db(
-            Class=Task,
-            dictionary_item=element,
-            conversion_rules={
-                'deadline': 'date_iso8601',
-            }
-        )
+    push_table_to_db(
+        data=data,
+        table_name_in_data='email',
+        model_class=Email
+    )
+    push_table_to_db(
+        data=data,
+        table_name_in_data='phone',
+        model_class=Phone
+    )
+    push_table_to_db(
+        data=data,
+        table_name_in_data='user_role',
+        model_class=Role
+    )
+    push_table_to_db(
+        data=data,
+        table_name_in_data='user',
+        model_class=User
+    )
+    push_table_to_db(
+        data=data,
+        table_name_in_data='tag',
+        model_class=Tag
+    )
+    push_table_to_db(
+        data=data,
+        table_name_in_data='task_status',
+        model_class=Status
+    )
+    push_table_to_db(
+        data=data,
+        table_name_in_data='task',
+        model_class=Task,
+        conversion_rules={
+            'deadline': 'date_iso8601',
+        }
+    )
 
 
 app = create_app()
