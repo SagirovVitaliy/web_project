@@ -49,7 +49,7 @@ http://localhost:5000
 \- где вместо `abcde` вы должны указать имя файла JSON из папки 'fixtures/' без
 расширения. Например `abcde` - будет иметь смысл того что вы требуете взять файл
 с фикстурами по адресу\
-`fixture/abcde.json`
+`fixtures/abcde.json`
 
 Если параметр fixture= не задан, это будет интерпретировано как\
 `make apply_fixture=default`
@@ -60,7 +60,7 @@ http://localhost:5000
 \- где вместо `abcde` вы должны указать имя файла JSON из папки 'fixtures/' без
 расширения. Например `abcde` - будет иметь смысл того что вы требуете взять файл
 с фикстурами по адресу\
-`fixture/abcde.json`
+`fixtures/abcde.json`
 
 Если параметр fixture= не задан, это будет интерпретировано как\
 `make make_stage fixture=default`
