@@ -63,5 +63,5 @@ http://localhost:5000
 `fixture/abcde.json`
 
 Если параметр fixture= не задан, это будет интерпретировано как\
-`make make_stage fixture=default`\
+`make make_stage fixture=default`
 
