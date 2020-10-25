@@ -1,14 +1,50 @@
 from webapp import create_app
 from webapp.model import db, Email, Phone, Role, User, Tag, Status, Task
 from dateparser import parse
+from sys import argv
 
 import json
 
-with open("fixtures.json", "r", encoding='utf-8') as read_file:
-    data = json.load(read_file)
+
+'''
+    Ожидается что этот файл будет использоваться в коммандной строке в стиле:
+    python3 load_fixture.py
+    или
+    python3 load_fixture.py abcd
+    где вместо "abcd" надо присылать назваание файла фикстуры.
+
+    Файл с фиктурой ищется в папке fixtures/__имя_файла__.json
+
+    Для примера с abcd это будет fixtures/abcd.json
+
+    python3 load_fixture.py
+    - особый случай: будет подключаться фикстура по адресу fixtures/default.json
+'''
 
 
-def get_data(data):
+def get_fixture_file_name():
+    argument_list = argv
+    fixture_file_name = 'default'
+
+    if len(argument_list) > 1:
+        fixture_file_name = f'{argv[1]}'
+
+    return fixture_file_name
+
+
+def get_data_from_file(file_name):
+    fixture_folder = 'fixtures/'
+    fixture_file_name = f'{file_name}'
+    fixture_file_extension = '.json'
+    fixture_path = fixture_folder + fixture_file_name + fixture_file_extension
+
+    with open(fixture_path, "r", encoding='utf-8') as read_file:
+        data = json.load(read_file)
+    
+    return data
+
+
+def push_data_to_db(data):
     for value in data['email']:
         email = Email(email=value['email'])
         db.session.add(email)
@@ -47,4 +83,6 @@ def get_data(data):
 
 app = create_app()
 with app.app_context():
-    get_data(data)
+    fixture_file_name = get_fixture_file_name()
+    data = get_data_from_file(file_name=fixture_file_name)
+    push_data_to_db(data)

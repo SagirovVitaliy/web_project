@@ -1,0 +1,83 @@
+{
+    "email": [
+        {
+            "email": "ww@mail.ru"
+        },
+        {
+            "email": "dkwjed@mail.ru"
+        }
+    ],
+    "phone": [
+        {
+            "phone": "79828762465"
+        },
+        {
+            "phone": "89651933244"
+        }
+    ],
+    "user_role": [
+        {
+            "role": "freelancer"
+        },
+        {
+            "role": "customer"
+        }
+    ],
+    "user": [
+        {
+            "username": "alex_syystem",
+            "password": "lcasdnjkncadkc",
+            "public_bio": "профессионально изготавливаю злых ежей"
+        },
+        {
+            "username": "german_gref",
+            "password": "mprewvewjgrn",
+            "public_bio": "Компания с тысячелетней историей поставки злых ежей"
+        }
+    ],
+    "tag": [
+        {
+            "tag": "Разведение ежей"
+        },
+        {
+            "tag": "Изготовление сайта"
+        }
+    ],
+    "task_status": [
+        {
+            "status": "created"
+        },
+        {
+            "status": "published"
+        },
+        {
+            "status": "freelancers_detected"
+        },
+        {
+            "status": "in_work"
+        },
+        {
+            "status": "stopped"
+        },
+        {
+            "status": "in_review"
+        },
+        {
+            "status": "done"
+        }
+    ],
+    "task": [
+        {
+            "task_name": "Сделать сайт-2",
+            "description": "Полная разработка сайта",
+            "price": 500000,
+            "deadline": "2020-10-31"
+        },
+        {
+            "task_name": "изготовление ежей-2",
+            "description": "надо изготовить злых ежей",
+            "price": 20000,
+            "deadline": "2020-10-14"
+        }
+    ]
+}
