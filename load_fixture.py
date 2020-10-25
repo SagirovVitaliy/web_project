@@ -11,7 +11,7 @@ import json
     python3 load_fixture.py
     или
     python3 load_fixture.py abcd
-    где вместо "abcd" надо присылать назваание файла фикстуры.
+    где вместо "abcd" надо присылать название файла фикстуры.
 
     Файл с фиктурой ищется в папке fixtures/__имя_файла__.json
 
