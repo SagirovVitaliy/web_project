@@ -3,12 +3,23 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
+def prettify(class_label, prop_line_list):
+    props = ' '.join(prop_line_list)
+    return f'<{class_label}: {props}>'
+
+
 class Email(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(), unique=True)
     
     def __repr__(self):
-        return'Email {}'.format(self.email)
+        return prettify(
+            class_label='Email',
+            prop_line_list=[
+                f'id:{self.id}',
+                f'email:{self.email}',
+            ]
+        )
 
 
 class Phone(db.Model):
@@ -16,7 +27,13 @@ class Phone(db.Model):
     phone = db.Column(db.Integer, unique=True)
     
     def __repr__(self):
-        return'Phone {}'.format(self.phone)
+        return prettify(
+            class_label='Phone',
+            prop_line_list=[
+                f'id:{self.id}',
+                f'phone:{self.phone}',
+            ]
+        )
 
 
 class Role(db.Model):
@@ -24,7 +41,13 @@ class Role(db.Model):
     role = db.Column(db.String(), nullable=False)
     
     def __repr__(self):
-        return'Role {}'.format(self.role)
+        return prettify(
+            class_label='Role',
+            prop_line_list=[
+                f'id:{self.id}',
+                f'role:{self.role}',
+            ]
+        )
 
 
 class User(db.Model):
@@ -54,7 +77,19 @@ class User(db.Model):
         )
 
     def __repr__(self):
-        return'<User {} {}>'.format(self.id, self.username)
+        return prettify(
+            class_label='User',
+            prop_line_list=[
+                f'id:{self.id}',
+                f'username:{self.username}',
+                f'role:{self.role}',
+                f'email:{self.email}',
+                f'phone:{self.phone}',
+                f'tag:{self.tag}',
+                f'password:{self.password}',
+                f'public_bio:{self.public_bio}',
+            ]
+        )
 
 
 class Status(db.Model):
@@ -62,7 +97,13 @@ class Status(db.Model):
     status = db.Column(db.String(), nullable=False)
 
     def __repr__(self):
-        return'Status {} {}'.format(self.id, self.status)
+        return prettify(
+            class_label='Status',
+            prop_line_list=[
+                f'id:{self.id}',
+                f'status:{self.status}',
+            ]
+        )
 
 
 class Tag(db.Model):
@@ -70,7 +111,13 @@ class Tag(db.Model):
     tag = db.Column(db.String(20))
 
     def __repr__(self):
-        return'Tag {}'.format(self.tag)
+        return prettify(
+            class_label='Tag',
+            prop_line_list=[
+                f'id:{self.id}',
+                f'tag:{self.tag}',
+            ]
+        )
 
 
 class Task(db.Model):
@@ -100,7 +147,20 @@ class Task(db.Model):
         )
 
     def __repr__(self):
-        return '{} {} {} {} {}'.format(self.id, self.task_name, self.status, self.price, self.deadline)
+        return prettify(
+            class_label='Task',
+            prop_line_list=[
+                f'id:{self.id}',
+                f'price:{self.price}',
+                f'deadline:{self.deadline}',
+                f'status:{self.status}',
+                f'customer:{self.customer}',
+                f'freelancer:{self.freelancer}',
+                f'tag:{self.tag}',
+                f'task_name:{self.task_name}',
+                f'description:{self.description}',
+            ]
+        )
 
 class TaskComment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -112,4 +172,11 @@ class TaskComment(db.Model):
         )
 
     def __repr__(self):
-        return '{} {}'.format(self.id, self.task, self.content)
+        return prettify(
+            class_label='TaskComment',
+            prop_line_list=[
+                f'id:{self.id}',
+                f'content:{self.content}',
+                f'task:{self.task}',
+            ]
+        )

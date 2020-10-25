@@ -40,45 +40,84 @@ def get_data_from_file(file_name):
 
     with open(fixture_path, "r", encoding='utf-8') as read_file:
         data = json.load(read_file)
-    
+
     return data
 
 
+def push_item_to_db(Class, dictionary_item, conversion_rules={}):
+    item = Class()
+    for prop_name in dictionary_item:
+
+        prop_value = dictionary_item[prop_name]
+
+        # В редких случаях могут прислать правила в формате который нельзя
+        # посылать напрямую в db - например когда присылают дату в формате
+        # '2020-10-10', а db ожидает объект даты. В таких случаях - присылайте
+        # пометку о том что нужно сделать определённое преобразование.
+        conversion_rule = conversion_rules.get(prop_name, None)
+        if (conversion_rule == 'date_iso8601'):
+            prop_value = parse(prop_value)
+
+        item.__dict__[prop_name] = prop_value
+    print('New item:')
+    print(item)
+    db.session.add(item)
+    db.session.commit()
+
+
 def push_data_to_db(data):
-    for value in data['email']:
-        email = Email(email=value['email'])
-        db.session.add(email)
-        db.session.commit()
-    
-    for value in data['phone']:
-        phone = Phone(phone=value['phone'])
-        db.session.add(phone)
-        db.session.commit()
 
-    for value in data['user_role']:
-        user_role = Role(role=value['role'])
-        db.session.add(user_role)
-        db.session.commit()
-    
-    for value in data['user']:
-        user = User(username=value['username'], password=value['password'], public_bio=value['public_bio'])
-        db.session.add(user)
-        db.session.commit()
+    list = data.get('email', []);
+    for element in list:
+        push_item_to_db(
+            Class=Email,
+            dictionary_item=element
+        )
 
-    for value in data['tag']:
-        tag = Tag(tag=value['tag'])
-        db.session.add(tag)
-        db.session.commit()
+    list = data.get('phone', []);
+    for element in list:
+        push_item_to_db(
+            Class=Phone,
+            dictionary_item=element
+        )
 
-    for value in data['task_status']:
-        status = Status(status=value['status'])
-        db.session.add(status)
-        db.session.commit()
+    list = data.get('user_role', []);
+    for element in list:
+        push_item_to_db(
+            Class=Role,
+            dictionary_item=element
+        )
 
-    for value in data['task']:
-        task = Task(task_name=value['task_name'], description=value['description'], price=value['price'], deadline=parse(value['deadline']))
-        db.session.add(task)
-        db.session.commit()
+    list = data.get('user', []);
+    for element in list:
+        push_item_to_db(
+            Class=User,
+            dictionary_item=element
+        )
+
+    list = data.get('tag', []);
+    for element in list:
+        push_item_to_db(
+            Class=Tag,
+            dictionary_item=element
+        )
+
+    list = data.get('task_status', []);
+    for element in list:
+        push_item_to_db(
+            Class=Status,
+            dictionary_item=element
+        )
+
+    list = data.get('task', []);
+    for element in list:
+        push_item_to_db(
+            Class=Task,
+            dictionary_item=element,
+            conversion_rules={
+                'deadline': 'date_iso8601',
+            }
+        )
 
 
 app = create_app()
