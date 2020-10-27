@@ -1,6 +1,21 @@
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
+# Задаём конвенции того как называть Constraints. Подробней зачем это нужно
+# можно посмотреть тут:
+# https://stackoverflow.com/questions/29153930/changing-constraint-naming-conventions-in-flask-sqlalchemy
+# https://flask-sqlalchemy.palletsprojects.com/en/master/config/
+from sqlalchemy import MetaData
+
+metadata = MetaData(
+  naming_convention={
+    'pk': 'pk_%(table_name)s',
+    'fk': 'fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s',
+    'ix': 'ix_%(table_name)s_%(column_0_name)s',
+    'uq': 'uq_%(table_name)s_%(column_0_name)s',
+    'ck': 'ck_%(table_name)s_%(constraint_name)s',
+    }
+)
+db = SQLAlchemy(metadata=metadata)
 
 
 def prettify(class_label, prop_line_list):
@@ -36,13 +51,13 @@ class Phone(db.Model):
         )
 
 
-class Role(db.Model):
+class UserRole(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     role = db.Column(db.String(), nullable=False)
     
     def __repr__(self):
         return prettify(
-            class_label='Role',
+            class_label='UserRole',
             prop_line_list=[
                 f'id:{self.id}',
                 f'role:{self.role}',
@@ -58,7 +73,7 @@ class User(db.Model):
 
     role = db.Column(
         db.Integer(),
-        db.ForeignKey('role.id', ondelete='CASCADE') 
+        db.ForeignKey('user_role.id', ondelete='CASCADE') 
         )
 
     email = db.Column(
@@ -92,13 +107,13 @@ class User(db.Model):
         )
 
 
-class Status(db.Model):
+class TaskStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(), nullable=False)
 
     def __repr__(self):
         return prettify(
-            class_label='Status',
+            class_label='TaskStatus',
             prop_line_list=[
                 f'id:{self.id}',
                 f'status:{self.status}',
@@ -128,7 +143,7 @@ class Task(db.Model):
     deadline = db.Column(db.Date())
     status = db.Column(
         db.Integer(),
-        db.ForeignKey('status.id', ondelete='CASCADE')
+        db.ForeignKey('task_status.id', ondelete='CASCADE')
         ) 
 
     customer = db.Column(

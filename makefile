@@ -28,9 +28,14 @@ install_python_modules:
 
 # Создаёт миграцию на основе текущего состояния Базы Данных.
 make_migration:
+	# Устанавливаем дефолтное состояние для make-парааметра в положение "". При
+	# вызове make_migration или любого рецепта который её требует, вы можете
+	# изменить параметр comment вот так:
+	# make make_migration comment=abc
+	$(eval comment=) \
 	export FLASK_APP=webapp && \
 	export FLASK_ENV=development && \
-	flask db migrate
+	flask db migrate -m '$(comment)'
 
 # Применяет самую свежую миграцию к Базе Данных.
 apply_migration:

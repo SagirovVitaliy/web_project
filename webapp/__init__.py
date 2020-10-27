@@ -1,6 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_migrate import Migrate
-from webapp.model import db, Email, Phone, Task, Status, Tag, User, Role
+from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole
 from webapp.forms import TaskForm, ChoiseForm, ChangeTaskStatusForm
 
 
@@ -8,7 +8,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_pyfile('config.py')
     db.init_app(app)
-    migrate = Migrate(app, db)
+    migrate = Migrate(app, db, render_as_batch=True)
 
     @app.route('/')
     def index():
@@ -24,22 +24,23 @@ def create_app():
     @app.route('/process_create_task', methods=['POST'])
     def process_create_task():
         task_form = TaskForm()
-        status = Status.query.filter(Status.status == 'created').one()
+        status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
         tag = Tag.query.filter(Tag.tag == 'Разведение ежей').one()
-        freelancer = Role.query.filter(Role.role == 'freelancer').one()
-        customer = Role.query.filter(Role.role == 'customer').one()
+        freelancer = UserRole.query.filter(UserRole.role == 'freelancer').one()
+        customer = UserRole.query.filter(UserRole.role == 'customer').one()
 
         if task_form.validate_on_submit():
-            task_name = Task(
-            task_name=task_form.task_name.data, 
-            description=task_form.description.data,
-            price=task_form.price.data,
-            deadline=task_form.deadline.data, 
-            status=status.id, 
-            tag=tag.id, 
-            freelancer=freelancer.id, 
-            customer=customer.id)
-            db.session.add(task_name)
+            task = Task(
+                task_name=task_form.task_name.data, 
+                description=task_form.description.data,
+                price=task_form.price.data,
+                deadline=task_form.deadline.data, 
+                status=status.id, 
+                tag=tag.id, 
+                freelancer=freelancer.id, 
+                customer=customer.id
+            )
+            db.session.add(task)
             db.session.commit()
             
             flash('Вы успешно создали заказ!')
@@ -53,19 +54,19 @@ def create_app():
         title = 'Все заказы'
         tasks = Task.query.all()
         form = ChoiseForm()
-        form.status.choices = [g.status for g in Status.query.all()[:2]]
+        form.status.choices = [g.status for g in TaskStatus.query.all()[:2]]
 
         return render_template('personal_area_customer.html', title=title, tasks=tasks, form=form)
 
     @app.route('/update_status/<int:task_id>', methods=['POST'])
     def update_status(task_id):
         form = ChoiseForm()
-        form.status.choices = [g.status for g in Status.query.all()[:2]]
+        form.status.choices = [g.status for g in TaskStatus.query.all()[:2]]
 
         if form.validate_on_submit():
             status = form.status.data
             task = Task.query.get(task_id)
-            task_status = Status.query.filter(Status.status == status).one()
+            task_status = TaskStatus.query.filter(TaskStatus.status == status).one()
             task.status = task_status.id
             db.session.commit()
                 
@@ -79,7 +80,7 @@ def create_app():
         form_url = url_for('change_task_status_from_in_work')
 
         allowed_status_codes = [ 'in_review' ]
-        status_list = Status.query.filter(Status.status.in_(allowed_status_codes))
+        status_list = TaskStatus.query.filter(TaskStatus.status.in_(allowed_status_codes))
 
         form = ChangeTaskStatusForm()
         form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
@@ -129,7 +130,7 @@ def create_app():
         form_url = url_for('change_task_status_from_in_review')
 
         allowed_status_codes = [ 'in_work', 'done' ]
-        status_list = Status.query.filter(Status.status.in_(allowed_status_codes))
+        status_list = TaskStatus.query.filter(TaskStatus.status.in_(allowed_status_codes))
 
         form = ChangeTaskStatusForm()
         form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]

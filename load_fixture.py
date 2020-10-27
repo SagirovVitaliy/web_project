@@ -1,5 +1,5 @@
 from webapp import create_app
-from webapp.model import db, Email, Phone, Role, User, Tag, Status, Task
+from webapp.model import db, Email, Phone, UserRole, User, Tag, TaskStatus, Task
 from dateparser import parse
 from sys import argv
 
@@ -95,7 +95,7 @@ def push_data_to_db(data):
     push_table_to_db(
         data=data,
         table_name_in_data='user_role',
-        model_class=Role
+        model_class=UserRole
     )
     push_table_to_db(
         data=data,
@@ -110,7 +110,7 @@ def push_data_to_db(data):
     push_table_to_db(
         data=data,
         table_name_in_data='task_status',
-        model_class=Status
+        model_class=TaskStatus
     )
     push_table_to_db(
         data=data,
