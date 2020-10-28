@@ -1,6 +1,21 @@
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
+# Задаём конвенции того как называть Constraints. Подробней зачем это нужно
+# можно посмотреть тут:
+# https://stackoverflow.com/questions/29153930/changing-constraint-naming-conventions-in-flask-sqlalchemy
+# https://flask-sqlalchemy.palletsprojects.com/en/master/config/
+from sqlalchemy import MetaData
+
+metadata = MetaData(
+  naming_convention={
+    'pk': 'pk_%(table_name)s',
+    'fk': 'fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s',
+    'ix': 'ix_%(table_name)s_%(column_0_name)s',
+    'uq': 'uq_%(table_name)s_%(column_0_name)s',
+    'ck': 'ck_%(table_name)s_%(constraint_name)s',
+    }
+)
+db = SQLAlchemy(metadata=metadata)
 
 
 def prettify(class_label, prop_line_list):
@@ -17,7 +32,7 @@ class Email(db.Model):
             class_label='Email',
             prop_line_list=[
                 f'id:{self.id}',
-                f'email:{self.email}'
+                f'email:{self.email}',
             ]
         )
 
@@ -31,7 +46,7 @@ class Phone(db.Model):
             class_label='Phone',
             prop_line_list=[
                 f'id:{self.id}',
-                f'phone:{self.phone}'
+                f'phone:{self.phone}',
             ]
         )
 
@@ -45,7 +60,7 @@ class UserRole(db.Model):
             class_label='Role',
             prop_line_list=[
                 f'id:{self.id}',
-                f'role:{self.role}'
+                f'role:{self.role}',
             ]
         )
 
@@ -97,7 +112,7 @@ class User(db.Model):
                 f'phone:{self.phone}',
                 f'tag:{self.tag}',
                 f'password:{self.password}',
-                f'public_bio:{self.public_bio}'
+                f'public_bio:{self.public_bio}',
             ]
         )
 
@@ -111,7 +126,7 @@ class TaskStatus(db.Model):
             class_label='Status',
             prop_line_list=[
                 f'id:{self.id}',
-                f'status:{self.status}'
+                f'status:{self.status}',
             ]
         )
 
@@ -125,7 +140,7 @@ class Tag(db.Model):
             class_label='Tag',
             prop_line_list=[
                 f'id:{self.id}',
-                f'tag:{self.tag}'
+                f'tag:{self.tag}',
             ]
         )
 
@@ -156,7 +171,6 @@ class Task(db.Model):
         db.ForeignKey('tag.id', ondelete='CASCADE')
         )
 
-
     def __repr__(self):
         return prettify(
             class_label='Task',
@@ -169,7 +183,7 @@ class Task(db.Model):
                 f'freelancer:{self.freelancer}',
                 f'tag:{self.tag}',
                 f'task_name:{self.task_name}',
-                f'description:{self.description}'
+                f'description:{self.description}',
             ]
         )
 
@@ -189,6 +203,6 @@ class TaskComment(db.Model):
             prop_line_list=[
                 f'id:{self.id}',
                 f'content:{self.content}',
-                f'task:{self.task}'
+                f'task:{self.task}',
             ]
         )

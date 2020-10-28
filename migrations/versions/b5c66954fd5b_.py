@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: fde4439a2dc9
+Revision ID: b5c66954fd5b
 Revises: 
-Create Date: 2020-10-26 21:15:05.667526
+Create Date: 2020-10-28 18:45:41.572501
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'fde4439a2dc9'
+revision = 'b5c66954fd5b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,29 +21,29 @@ def upgrade():
     op.create_table('email',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(), nullable=True),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_email')),
+    sa.UniqueConstraint('email', name=op.f('uq_email_email'))
     )
     op.create_table('phone',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('phone', sa.Integer(), nullable=True),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('phone')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_phone')),
+    sa.UniqueConstraint('phone', name=op.f('uq_phone_phone'))
     )
     op.create_table('tag',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('tag', sa.String(length=20), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_tag'))
     )
     op.create_table('task_status',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_task_status'))
     )
     op.create_table('user_role',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('role', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_user_role'))
     )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -54,11 +54,11 @@ def upgrade():
     sa.Column('email', sa.Integer(), nullable=True),
     sa.Column('phone', sa.Integer(), nullable=True),
     sa.Column('tag', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['email'], ['email.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['phone'], ['phone.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['role'], ['user_role.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['tag'], ['tag.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['email'], ['email.id'], name=op.f('fk_user_email_email'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['phone'], ['phone.id'], name=op.f('fk_user_phone_phone'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['role'], ['user_role.id'], name=op.f('fk_user_role_user_role'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['tag'], ['tag.id'], name=op.f('fk_user_tag_tag'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_user'))
     )
     op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
     op.create_table('task',
@@ -71,25 +71,24 @@ def upgrade():
     sa.Column('customer', sa.Integer(), nullable=True),
     sa.Column('freelancer', sa.Integer(), nullable=True),
     sa.Column('tag', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['customer'], ['user.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['freelancer'], ['user.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['status'], ['task_status.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['tag'], ['tag.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['customer'], ['user.id'], name=op.f('fk_task_customer_user'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['freelancer'], ['user.id'], name=op.f('fk_task_freelancer_user'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['status'], ['task_status.id'], name=op.f('fk_task_status_task_status'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['tag'], ['tag.id'], name=op.f('fk_task_tag_tag'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_task'))
     )
-    op.create_table('freelancers_tasks',
-    sa.Column('freelancers_id', sa.Integer(), nullable=False),
-    sa.Column('task_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['freelancers_id'], ['user.id'], ),
-    sa.ForeignKeyConstraint(['task_id'], ['task.id'], ),
-    sa.PrimaryKeyConstraint('freelancers_id', 'task_id')
+    op.create_table('freelancers_who_responded',
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('task_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['task_id'], ['task.id'], name=op.f('fk_freelancers_who_responded_task_id_task')),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_freelancers_who_responded_user_id_user'))
     )
     op.create_table('task_comment',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('content', sa.String(), nullable=True),
     sa.Column('task', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['task'], ['task.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['task'], ['task.id'], name=op.f('fk_task_comment_task_task')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_task_comment'))
     )
     # ### end Alembic commands ###
 
@@ -97,7 +96,7 @@ def upgrade():
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('task_comment')
-    op.drop_table('freelancers_tasks')
+    op.drop_table('freelancers_who_responded')
     op.drop_table('task')
     op.drop_index(op.f('ix_user_username'), table_name='user')
     op.drop_table('user')

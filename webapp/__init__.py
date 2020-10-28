@@ -1,7 +1,7 @@
 from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_migrate import Migrate
 from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole, freelancers_who_responded
-from webapp.forms import TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo
+from webapp.forms import TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo, ChangeTaskStatusForm
 
 
 def create_app():
@@ -124,5 +124,106 @@ def create_app():
             flash(f"Статус заказа изменён на {status}")
         
         return render_template('in_work_two.html', title=title, form=form)
+
+
+    @app.route('/change_task_status_from_in_work', methods=['GET', 'POST'])
+    def change_task_status_from_in_work():
+
+        title = 'Тестируем task.status: in_work -> in_review'
+        form_url = url_for('change_task_status_from_in_work')
+
+        allowed_status_codes = [ 'in_review' ]
+        status_list = TaskStatus.query.filter(TaskStatus.status.in_(allowed_status_codes))
+
+        form = ChangeTaskStatusForm()
+        form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
+        form.status.choices = [(g.id, g.status) for g in status_list]
+
+        if request.method == 'GET':
+
+            title += ' GET'
+            return render_template(
+                'change_task_status.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+        elif request.method == 'POST':
+            
+            title += ' POST'
+            if form.validate_on_submit():
+
+                current_task = request.form.get('task_id');
+                new_status = request.form.get('status');
+
+                task = Task.query.get(current_task)
+                task.status = new_status
+                db.session.commit()
+
+                title += ' SUCCESS'
+                task = Task.query.get(current_task)
+                return render_template(
+                    'change_task_status.success.html',
+                    title=title,
+                    task=task.__dict__
+                )
+
+            return render_template(
+                'change_task_status.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+    @app.route('/change_task_status_from_in_review', methods=['GET', 'POST'])
+    def change_task_status_from_in_review():
+
+        title = 'Тестируем task.status: in_review -> (in_work|done)'
+        form_url = url_for('change_task_status_from_in_review')
+
+        allowed_status_codes = [ 'in_work', 'done' ]
+        status_list = TaskStatus.query.filter(TaskStatus.status.in_(allowed_status_codes))
+
+        form = ChangeTaskStatusForm()
+        form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
+        form.status.choices = [(g.id, g.status) for g in status_list]
+
+        if request.method == 'GET':
+
+            title += ' GET'
+            return render_template(
+                'change_task_status.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+        elif request.method == 'POST':
+            
+            title += ' POST'
+            if form.validate_on_submit():
+
+                current_task = request.form.get('task_id');
+                new_status = request.form.get('status');
+
+                task = Task.query.get(current_task)
+                task.status = new_status
+                db.session.commit()
+
+                title += ' SUCCESS'
+                task = Task.query.get(current_task)
+                return render_template(
+                    'change_task_status.success.html',
+                    title=title,
+                    task=task.__dict__
+                )
+
+            return render_template(
+                'change_task_status.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
 
     return app
