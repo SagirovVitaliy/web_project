@@ -21,7 +21,7 @@ class ChoiseForm(FlaskForm):
     status = SelectField('Выбрать статус', choices=[])
     submit = SubmitField('Сменить статус')
 
-
+ 
 class FreelancerForm(FlaskForm):
     tasks = SelectField('Выбрать заказ', choices=[])
     submit = SubmitField('Отликнутся')
@@ -37,6 +37,12 @@ class InWorkFormTwo(FlaskForm):
     submit = SubmitField('Выбрать')
 
 
+class ChangeTaskStatusForm(FlaskForm):
+    task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
+    status = SelectField('Новый статус', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Сменить статус')
+    
+    
 class ChangeTaskStatusForm(FlaskForm):
     task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
     status = SelectField('Новый статус', choices=[], validators=[DataRequired()])

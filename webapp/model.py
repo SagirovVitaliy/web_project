@@ -57,19 +57,17 @@ class UserRole(db.Model):
     
     def __repr__(self):
         return prettify(
-            class_label='Role',
+            class_label='UserRole',
             prop_line_list=[
                 f'id:{self.id}',
                 f'role:{self.role}',
             ]
         )
 
-
 freelancers_who_responded = db.Table('freelancers_who_responded',
     db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
     db.Column('task_id', db.Integer(), db.ForeignKey('task.id'))
 )
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -123,7 +121,7 @@ class TaskStatus(db.Model):
 
     def __repr__(self):
         return prettify(
-            class_label='Status',
+            class_label='TaskStatus',
             prop_line_list=[
                 f'id:{self.id}',
                 f'status:{self.status}',
@@ -187,7 +185,7 @@ class Task(db.Model):
             ]
         )
 
-
+      
 class TaskComment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String())

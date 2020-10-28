@@ -12,8 +12,11 @@ import json
     или
     python3 load_fixture.py abcd
     где вместо "abcd" надо присылать название файла фикстуры.
+
     Файл с фиктурой ищется в папке fixtures/__имя_файла__.json
+
     Для примера с abcd это будет fixtures/abcd.json
+
     python3 load_fixture.py
     - особый случай: будет подключаться фикстура по адресу fixtures/default.json
 '''
@@ -124,3 +127,4 @@ with app.app_context():
     fixture_file_name = get_fixture_file_name()
     data = get_data_from_file(file_name=fixture_file_name)
     push_data_to_db(data)
+

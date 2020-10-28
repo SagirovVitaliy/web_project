@@ -1,5 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_migrate import Migrate
+
 from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole, freelancers_who_responded
 from webapp.forms import TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo, ChangeTaskStatusForm
 
@@ -8,7 +9,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_pyfile('config.py')
     db.init_app(app)
-    migrate = Migrate(app, db)
+    migrate = Migrate(app, db, render_as_batch=True)
 
     @app.route('/')
     def index():
@@ -30,16 +31,17 @@ def create_app():
         customer = UserRole.query.filter(UserRole.role == 'customer').one()
 
         if task_form.validate_on_submit():
-            task_name = Task(
-            task_name=task_form.task_name.data, 
-            description=task_form.description.data,
-            price=task_form.price.data,
-            deadline=task_form.deadline.data, 
-            status=status.id, 
-            tag=tag.id, 
-            freelancer=freelancer.id, 
-            customer=customer.id)
-            db.session.add(task_name)
+            task = Task(
+                task_name=task_form.task_name.data, 
+                description=task_form.description.data,
+                price=task_form.price.data,
+                deadline=task_form.deadline.data, 
+                status=status.id, 
+                tag=tag.id, 
+                freelancer=freelancer.id, 
+                customer=customer.id
+            )
+            db.session.add(task)
             db.session.commit()
             
             flash('Вы успешно создали заказ!')
@@ -90,7 +92,6 @@ def create_app():
 
         return render_template('personal_area_freelancer.html', title=title, form=form)
 
-
     @app.route('/personal_area_customer_in_work/<int:customer_id>', methods=['GET', 'POST'])
     def personal_area_customer_in_work(customer_id):
         title = 'Все заказы'
@@ -105,7 +106,6 @@ def create_app():
         
         return render_template('in_work.html', title=title, form=form)
 
-    
     @app.route('/personal_area_customer_in_work_two/<int:task_id>', methods=['GET', 'POST'])
     def personal_area_customer_in_work_two(task_id):
         title = 'Все откликнувшиеся'
@@ -124,7 +124,6 @@ def create_app():
             flash(f"Статус заказа изменён на {status}")
         
         return render_template('in_work_two.html', title=title, form=form)
-
 
     @app.route('/change_task_status_from_in_work', methods=['GET', 'POST'])
     def change_task_status_from_in_work():
