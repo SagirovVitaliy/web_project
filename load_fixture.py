@@ -127,3 +127,4 @@ with app.app_context():
     fixture_file_name = get_fixture_file_name()
     data = get_data_from_file(file_name=fixture_file_name)
     push_data_to_db(data)
+

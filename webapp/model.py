@@ -64,6 +64,10 @@ class UserRole(db.Model):
             ]
         )
 
+freelancers_who_responded = db.Table('freelancers_who_responded',
+    db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+    db.Column('task_id', db.Integer(), db.ForeignKey('task.id'))
+)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -90,6 +94,10 @@ class User(db.Model):
         db.Integer(),
         db.ForeignKey('tag.id', ondelete='CASCADE')
         )
+
+    responded_to_tasks = db.relationship(
+        'Task', secondary=freelancers_who_responded,
+        backref=db.backref('freelancers_who_responded', lazy='dynamic'))
 
     def __repr__(self):
         return prettify(
@@ -177,6 +185,7 @@ class Task(db.Model):
             ]
         )
 
+      
 class TaskComment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String())

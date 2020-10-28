@@ -1,7 +1,8 @@
 from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_migrate import Migrate
-from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole
-from webapp.forms import TaskForm, ChoiseForm, ChangeTaskStatusForm
+
+from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole, freelancers_who_responded
+from webapp.forms import TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo, ChangeTaskStatusForm
 
 
 def create_app():
@@ -47,7 +48,8 @@ def create_app():
             return redirect(url_for('personal_area_customer'))
 
         flash('Введите все данные!')
-        return redirect(url_for('create_task'))
+        title = 'Создание заказа'
+        return render_template('create_task.html', title=title, form=task_form)
 
     @app.route('/personal_area_customer')
     def personal_area_customer():
@@ -72,6 +74,56 @@ def create_app():
                 
         flash(f"Статус заказа изменён на {status}")
         return redirect(url_for('personal_area_customer'))
+
+    @app.route('/personal_area_freelancer/<int:user_id>', methods=['GET', 'POST'])
+    def personal_area_freelancer(user_id):
+        title = 'Все заказы'
+        form = FreelancerForm()
+        form.tasks.choices = [task.id for task in Task.query.filter(Task.status.in_([2,3])).all()]
+
+        if form.validate_on_submit():
+            task = Task.query.get(form.tasks.data)
+            user = User.query.get(user_id)
+            task.freelancers_who_responded.append(user)
+            status = TaskStatus.query.filter(TaskStatus.status == 'freelancers_detected').one()
+            task.status = status.id
+            db.session.commit()
+            flash(f"Статус заказа изменён на {status}")
+
+        return render_template('personal_area_freelancer.html', title=title, form=form)
+
+    @app.route('/personal_area_customer_in_work/<int:customer_id>', methods=['GET', 'POST'])
+    def personal_area_customer_in_work(customer_id):
+        title = 'Все заказы'
+        form = InWorkForm()
+        tasks = Task.query.filter(Task.customer == customer_id, Task.status == 3).all()
+        form.tasks.choices = [task.id for task in tasks]
+        
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                task_id = form.tasks.data
+                return redirect(url_for('personal_area_customer_in_work_two', task_id=task_id))
+        
+        return render_template('in_work.html', title=title, form=form)
+
+    @app.route('/personal_area_customer_in_work_two/<int:task_id>', methods=['GET', 'POST'])
+    def personal_area_customer_in_work_two(task_id):
+        title = 'Все откликнувшиеся'
+        form = InWorkFormTwo()
+        task = Task.query.get(task_id)
+        freelancers = task.freelancers_who_responded.all()
+        
+        form.freelancers.choices = [user.id for user in freelancers]
+
+        if form.validate_on_submit():
+            task = Task.query.get(task_id)
+            status = TaskStatus.query.filter(TaskStatus.status == 'in_work').one()
+            task.status = status.id
+            task.freelancer = form.freelancers.data
+            db.session.commit()
+            flash(f"Статус заказа изменён на {status}")
+        
+        return render_template('in_work_two.html', title=title, form=form)
 
     @app.route('/change_task_status_from_in_work', methods=['GET', 'POST'])
     def change_task_status_from_in_work():
