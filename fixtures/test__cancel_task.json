@@ -11,24 +11,28 @@
     ],
     "user": [
         {
+            "id": 1,
             "role": 1,
             "username": "german_gref",
             "password": "example",
             "public_bio": "Компания с тысячелетней историей поставки злых ежей"
         },
         {
+            "id": 2,
             "role": 2,
             "username": "free_a",
             "password": "example",
             "public_bio": "профессионально изготавливаю злых ежей"
         },
         {
+            "id": 3,
             "role": 2,
             "username": "free_b",
             "password": "example",
             "public_bio": "профессионально изготавливаю злых ежей"
         },
         {
+            "id": 4,
             "role": 2,
             "username": "free_c",
             "password": "example",
