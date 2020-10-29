@@ -11,8 +11,34 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db, render_as_batch=True)
 
+
+    def print_task_state(task_id, label=''):
+        '''Распечатать состояние Задачи и связанных с ней объектов.'''
+        task = Task.query.get(task_id)
+        status = TaskStatus.query.filter(
+            TaskStatus.id == task.status
+        ).first()
+        customer = User.query.filter(
+            User.id == task.customer
+        ).first()
+        freelancer = User.query.filter(
+            User.id == task.freelancer
+        ).first()
+        freelancers = task.freelancers_who_responded.all()
+        print()
+        print(f'{label}:')
+        print(f'------')
+        print(f'task:{task}')
+        print(f'task.status:{status}')
+        print(f'task.customer:{customer}')
+        print(f'task.freelancer:{freelancer}')
+        print(f'task.freelancers:{freelancers}')
+        print()
+
+
     @app.route('/')
     def index():
+        '''Задать маршрут по которому можно проверить что сервер работает.'''
         world = 'word'
         return render_template('hello_world.html', world=world)
     
@@ -127,7 +153,14 @@ def create_app():
 
     @app.route('/change_task_status_from_in_work', methods=['GET', 'POST'])
     def change_task_status_from_in_work():
+        '''Задать маршрут по которому можно тестировать логику.
 
+        Здесь мы хотим тестировать логику:
+        ----------------------------------
+
+        Отрезок позитивного пути - Фрилансер двигает заказ со статуса 'in_work'
+        mна 'in_review'.
+        '''
         title = 'Тестируем task.status: in_work -> in_review'
         form_url = url_for('change_task_status_from_in_work')
 
@@ -153,15 +186,15 @@ def create_app():
             title += ' POST'
             if form.validate_on_submit():
 
-                current_task = request.form.get('task_id');
-                new_status = request.form.get('status');
+                current_task_id = request.form.get('task_id');
+                new_status_id = request.form.get('status');
 
-                task = Task.query.get(current_task)
-                task.status = new_status
+                task = Task.query.get(current_task_id)
+                task.status = new_status_id
                 db.session.commit()
 
                 title += ' SUCCESS'
-                task = Task.query.get(current_task)
+                task = Task.query.get(current_task_id)
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
@@ -177,7 +210,14 @@ def create_app():
 
     @app.route('/change_task_status_from_in_review', methods=['GET', 'POST'])
     def change_task_status_from_in_review():
+        '''Задать маршрут по которому можно тестировать логику.
 
+        Здесь мы хотим тестировать логику:
+        ----------------------------------
+
+        Отрезок позитивного пути - Заказчик двигает заказ со статуса 'in_review'
+        либо на 'in_work', либо на 'done'.
+        '''
         title = 'Тестируем task.status: in_review -> (in_work|done)'
         form_url = url_for('change_task_status_from_in_review')
 
@@ -203,15 +243,15 @@ def create_app():
             title += ' POST'
             if form.validate_on_submit():
 
-                current_task = request.form.get('task_id');
-                new_status = request.form.get('status');
+                current_task_id = request.form.get('task_id');
+                new_status_id = request.form.get('status');
 
-                task = Task.query.get(current_task)
-                task.status = new_status
+                task = Task.query.get(current_task_id)
+                task.status = new_status_id
                 db.session.commit()
 
                 title += ' SUCCESS'
-                task = Task.query.get(current_task)
+                task = Task.query.get(current_task_id)
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
@@ -220,6 +260,91 @@ def create_app():
 
             return render_template(
                 'change_task_status.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+
+    @app.route('/cancel_task', methods=['GET', 'POST'])
+    def cancel_task():
+        '''Задать маршрут по которому можно тестировать логику.
+
+        Здесь мы хотим тестировать логику:
+        ----------------------------------
+
+        Отрезок негативного пути - Заказчик отменяет Задачу.
+        '''
+        title = 'Тестируем customer.cancel_task'
+        form_url = url_for('cancel_task')
+
+        allowed_status_codes = [ 'stopped' ]
+        status_list = TaskStatus.query.filter(TaskStatus.status.in_(allowed_status_codes))
+
+        form = ChangeTaskStatusForm()
+        form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
+        form.status.choices = [(g.id, g.status) for g in status_list]
+
+        if request.method == 'GET':
+
+            title += ' GET'
+            return render_template(
+                'cancel_task.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+        elif request.method == 'POST':
+            
+            title += ' POST'
+            if form.validate_on_submit():
+
+                current_task_id = request.form.get('task_id');
+                new_status_id = request.form.get('status');
+
+                freelancer_role = UserRole.query.filter(UserRole.role == 'freelancer').first()
+                if freelancer_role == None:
+                    raise Exception('Database does not have UserRole "freelancer"')
+
+                # На время тестов.
+                print_task_state(task_id=current_task_id, label='before');
+
+                # Поставить Задаче новый Статус.
+                task = Task.query.get(current_task_id)
+                task.status = new_status_id
+                db.session.commit()
+
+                # Отцепить от Задачи - Фрилансера-подтверждённого исполнителя.
+                freelancer = User.query.filter(
+                    User.id == task.freelancer,
+                    User.role == freelancer_role.id
+                ).first()
+                if freelancer != None:
+                    task.freelancer = None
+                    db.session.commit()
+
+                # Отцепить от Задачи - Предваритально Откликнувшихся
+                # Фрилансеров.
+                freelancers = task.freelancers_who_responded.all()
+                task.freelancers_who_responded = task.freelancers_who_responded.filter(
+                    User.role != freelancer_role.id
+                )
+                db.session.commit()
+
+                # На время тестов.
+                print_task_state(task_id=current_task_id, label='after');
+
+                title += ' SUCCESS'
+                task = Task.query.get(current_task_id)
+                return render_template(
+                    'cancel_task.success.html',
+                    title=title,
+                    task=task.__dict__
+                )
+
+            return render_template(
+                'cancel_task.form.html',
                 title=title,
                 form=form,
                 form_url=form_url
