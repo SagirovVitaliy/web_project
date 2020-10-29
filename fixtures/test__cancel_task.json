@@ -1,0 +1,137 @@
+{
+    "user_role": [
+        {
+            "id": 1,
+            "role": "customer"
+        },
+        {
+            "id": 2,
+            "role": "freelancer"
+        }
+    ],
+    "user": [
+        {
+            "id": 1,
+            "role": 1,
+            "username": "german_gref",
+            "password": "example",
+            "public_bio": "Компания с тысячелетней историей поставки злых ежей"
+        },
+        {
+            "id": 2,
+            "role": 2,
+            "username": "free_a",
+            "password": "example",
+            "public_bio": "профессионально изготавливаю злых ежей"
+        },
+        {
+            "id": 3,
+            "role": 2,
+            "username": "free_b",
+            "password": "example",
+            "public_bio": "профессионально изготавливаю злых ежей"
+        },
+        {
+            "id": 4,
+            "role": 2,
+            "username": "free_c",
+            "password": "example",
+            "public_bio": "профессионально изготавливаю злых ежей"
+        }
+    ],
+    "task_status": [
+        {
+            "id": 1,
+            "status": "created"
+        },
+        {
+            "id": 2,
+            "status": "published"
+        },
+        {
+            "id": 3,
+            "status": "freelancers_detected"
+        },
+        {
+            "id": 4,
+            "status": "in_work"
+        },
+        {
+            "id": 5,
+            "status": "stopped"
+        },
+        {
+            "id": 6,
+            "status": "in_review"
+        },
+        {
+            "id": 7,
+            "status": "done"
+        }
+    ],
+    "task": [
+        {
+            "id": 1,
+            "task_name": "изготовление ежей 1",
+            "description": "надо изготовить злых ежей",
+            "price": 20000,
+            "deadline": "2020-10-14",
+            "status": 6
+        },
+        {
+            "id": 2,
+            "task_name": "изготовление ежей 2",
+            "description": "надо изготовить злых ежей",
+            "price": 20000,
+            "deadline": "2020-10-14",
+            "status": 6,
+            "customer": 1
+        },
+        {
+            "id": 3,
+            "task_name": "изготовление ежей 3",
+            "description": "надо изготовить злых ежей",
+            "price": 20000,
+            "deadline": "2020-10-14",
+            "status": 6,
+            "freelancer": 2
+        },
+        {
+            "id": 4,
+            "task_name": "изготовление ежей 4",
+            "description": "надо изготовить злых ежей",
+            "price": 20000,
+            "deadline": "2020-10-14",
+            "status": 6,
+            "customer": 1,
+            "freelancer": 2
+        }
+    ],
+    "m2m.user.responded_to_tasks": [
+        {
+            "task.id": 3,
+            "user.id": 2
+        },
+        {
+            "task.id": 3,
+            "user.id": 3
+        },
+        {
+            "task.id": 3,
+            "user.id": 4
+        },
+        
+        {
+            "task.id": 4,
+            "user.id": 2
+        },
+        {
+            "task.id": 4,
+            "user.id": 3
+        },
+        {
+            "task.id": 4,
+            "user.id": 4
+        }
+    ]
+}

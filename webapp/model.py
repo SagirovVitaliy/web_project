@@ -96,8 +96,10 @@ class User(db.Model):
         )
 
     responded_to_tasks = db.relationship(
-        'Task', secondary=freelancers_who_responded,
-        backref=db.backref('freelancers_who_responded', lazy='dynamic'))
+        'Task',
+        secondary=freelancers_who_responded,
+        backref=db.backref('freelancers_who_responded', lazy='dynamic')
+        )
 
     def __repr__(self):
         return prettify(
