@@ -39,7 +39,7 @@ def get_data_from_file(file_name):
     fixture_file_extension = '.json'
     fixture_path = fixture_folder + fixture_file_name + fixture_file_extension
 
-    with open(fixture_path, "r", encoding='utf-8') as read_file:
+    with open(fixture_path, 'r', encoding='utf-8') as read_file:
         data = json.load(read_file)
 
     return data
@@ -71,7 +71,7 @@ def push_table_to_db(
         model_class,
         conversion_rules={}
     ):
-    """Добавить в Базу Данных: Записи."""
+    '''Добавить в Базу Данных: Записи.'''
     table_name_in_data = model_class.__tablename__
     table_rows = data.get(table_name_in_data, []);
     for table_row in table_rows:
@@ -88,19 +88,19 @@ def push_m2m_relationship_to_db(
         b_class,
         table_row
     ):
-    """Добавить в Базу Данных: одну Связь (между двумя предметами А и Б).
+    '''Добавить в Базу Данных: одну Связь (между двумя предметами А и Б).
 
     Keyword arguments:
 
     a_class -- класс предмета А (без дефолта)
     a_relationship_prop_name -- имя свойства класса A, которое содержит
-                                           отношение (без дефолта).
+                                отношение (без дефолта).
 
     b_class -- класс предмета Б (без дефолта)
 
     table_row -- ряд таблицы, описывающий связь двух предметов; в ряду -
                  2 элемента - id Предмета A и id Предмета Б.
-    """
+    '''
     def get_item(z_class):
         id_name_in_table_row = z_class.__tablename__ + '.id'
         id_name_in_class = 'id'
@@ -126,7 +126,22 @@ def push_m2m_relationships_to_db(
         a_relationship_prop_name,
         b_class
     ):
-    """Добавить в Базу Данных: Отношения многие-ко-многим."""
+    '''Добавить в Базу Данных: Отношения многие-ко-многим.
+
+    Обычно вы прислаете в data - то что содержалось в JSON файле фикстуры.
+    Ожидается что data - это словарь. data может содержать поле которое содержит
+    данные для простой двусторонней связи двух сущностей по двум id. Название
+    этого поля в data вычисляется на основе параметров которые вы прислали -
+    a_class, a_relationship_prop_name.
+
+    Если вы прислали класс a_class=SomeExampleClass и
+    a_relationship_prop_name='some_example_field', то название поля на выходе
+    этого алгоритма будет 'm2m.some_example_class.some_example_field'.
+
+    По идее, точки в названии должны сделать невозможными коллизии если вы
+    следуете обычным конвенциям для того чтобы называть классы и свойства даже
+    если у вас есть класс 'm2m'.
+    '''
     table_name_in_data = f'm2m.{a_class.__tablename__}.{a_relationship_prop_name}'
     table_rows = data.get(table_name_in_data, []);
 
@@ -140,7 +155,7 @@ def push_m2m_relationships_to_db(
 
 
 def push_data_to_db(data):
-    """Добавить в Базу Данных: Записи и Отношения многие-ко-многим.
+    '''Добавить в Базу Данных: Записи и Отношения многие-ко-многим.
 
     Это функция-клей.
 
@@ -151,7 +166,7 @@ def push_data_to_db(data):
 
     Но хотя эта функция заточена под конкретный сайт и конкретную миграцию, её
     можно использовать как пример использования функций из этого модуля.
-    """
+    '''
     push_table_to_db(
         data=data,
         model_class=Email
