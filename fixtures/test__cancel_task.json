@@ -107,31 +107,31 @@
             "freelancer": 2
         }
     ],
-    "m2m_freelancers_who_responded": [
+    "m2m.user.responded_to_tasks": [
         {
-            "task_id": 3,
-            "user_id": 2
+            "task.id": 3,
+            "user.id": 2
         },
         {
-            "task_id": 3,
-            "user_id": 3
+            "task.id": 3,
+            "user.id": 3
         },
         {
-            "task_id": 3,
-            "user_id": 4
+            "task.id": 3,
+            "user.id": 4
         },
         
         {
-            "task_id": 4,
-            "user_id": 2
+            "task.id": 4,
+            "user.id": 2
         },
         {
-            "task_id": 4,
-            "user_id": 3
+            "task.id": 4,
+            "user.id": 3
         },
         {
-            "task_id": 4,
-            "user_id": 4
+            "task.id": 4,
+            "user.id": 4
         }
     ]
 }

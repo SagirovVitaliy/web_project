@@ -68,11 +68,11 @@ def push_table_row_to_db(model_class, table_row, conversion_rules={}):
 
 def push_table_to_db(
         data,
-        table_name_in_data,
         model_class,
         conversion_rules={}
     ):
     """Добавить в Базу Данных: Записи."""
+    table_name_in_data = model_class.__tablename__
     table_rows = data.get(table_name_in_data, []);
     for table_row in table_rows:
         push_table_row_to_db(
@@ -83,74 +83,58 @@ def push_table_to_db(
 
 
 def push_m2m_relationship_to_db(
-        model_class_a,
-        model_class_a_prop_name_in_data,
-        model_class_a_prop_name_in_class,
-        model_class_a_relationship_in_class,
-        
-        model_class_b,
-        model_class_b_prop_name_in_data,
-        model_class_b_prop_name_in_class,
-        
+        a_class,
+        a_relationship_prop_name,
+        b_class,
         table_row
     ):
     """Добавить в Базу Данных: одну Связь (между двумя предметами А и Б).
 
     Keyword arguments:
 
-    model_class_a -- класс предмета А (без дефолта)
-    model_class_a_prop_name_in_data -- имя свойства с id Предмета А в table_row.
-    model_class_a_prop_name_in_class -- имя свойства с id Предмета А в классе А.
-    model_class_a_relationship_in_class --
+    a_class -- класс предмета А (без дефолта)
+    a_relationship_prop_name -- имя свойства класса A, которое содержит
+                                           отношение (без дефолта).
 
-    model_class_b -- класс предмета Б (без дефолта)
-    model_class_b_prop_name_in_data -- имя свойства с id Предмета Б в table_row.
-    model_class_b_prop_name_in_class -- имя свойства с id Предмета Б в классе Б.
+    b_class -- класс предмета Б (без дефолта)
 
     table_row -- ряд таблицы, описывающий связь двух предметов; в ряду -
                  2 элемента - id Предмета A и id Предмета Б.
     """
-    item_a = model_class_a.query.filter(
-        getattr(model_class_a, model_class_a_prop_name_in_class) ==
-        table_row[model_class_a_prop_name_in_data]
-    ).first()
-    
-    item_b = model_class_b.query.filter(
-        getattr(model_class_b, model_class_b_prop_name_in_class) ==
-        table_row[model_class_b_prop_name_in_data]
-    ).first()
+    def get_item(z_class):
+        id_name_in_table_row = z_class.__tablename__ + '.id'
+        id_name_in_class = 'id'
 
-    getattr(item_a, model_class_a_relationship_in_class).append(item_b)
+        z_item = z_class.query.filter(
+            getattr(z_class, id_name_in_class) ==
+            table_row[id_name_in_table_row]
+        ).first()
+
+        return z_item
+
+    a_item = get_item(a_class)
+    b_item = get_item(b_class)
+
+    getattr(a_item, a_relationship_prop_name).append(b_item)
     db.session.commit()
     pass
 
 
 def push_m2m_relationships_to_db(
         data,
-        table_name_in_data,
-        
-        model_class_a,
-        model_class_a_prop_name_in_data,
-        model_class_a_prop_name_in_class,
-        model_class_a_relationship_in_class,
-        
-        model_class_b,
-        model_class_b_prop_name_in_data,
-        model_class_b_prop_name_in_class
+        a_class,
+        a_relationship_prop_name,
+        b_class
     ):
     """Добавить в Базу Данных: Отношения многие-ко-многим."""
+    table_name_in_data = f'm2m.{a_class.__tablename__}.{a_relationship_prop_name}'
     table_rows = data.get(table_name_in_data, []);
+
     for table_row in table_rows:
         push_m2m_relationship_to_db(
-            model_class_a=model_class_a,
-            model_class_a_prop_name_in_data=model_class_a_prop_name_in_data,
-            model_class_a_prop_name_in_class=model_class_a_prop_name_in_class,
-            model_class_a_relationship_in_class=model_class_a_relationship_in_class,
-            
-            model_class_b=model_class_b,
-            model_class_b_prop_name_in_data=model_class_b_prop_name_in_data,
-            model_class_b_prop_name_in_class=model_class_b_prop_name_in_class,
-            
+            a_class=a_class,
+            a_relationship_prop_name=a_relationship_prop_name,
+            b_class=b_class,
             table_row=table_row
         )
 
@@ -170,37 +154,30 @@ def push_data_to_db(data):
     """
     push_table_to_db(
         data=data,
-        table_name_in_data='email',
         model_class=Email
     )
     push_table_to_db(
         data=data,
-        table_name_in_data='phone',
         model_class=Phone
     )
     push_table_to_db(
         data=data,
-        table_name_in_data='user_role',
         model_class=UserRole
     )
     push_table_to_db(
         data=data,
-        table_name_in_data='user',
         model_class=User
     )
     push_table_to_db(
         data=data,
-        table_name_in_data='tag',
         model_class=Tag
     )
     push_table_to_db(
         data=data,
-        table_name_in_data='task_status',
         model_class=TaskStatus
     )
     push_table_to_db(
         data=data,
-        table_name_in_data='task',
         model_class=Task,
         conversion_rules={
             'deadline': 'date_iso8601',
@@ -210,14 +187,9 @@ def push_data_to_db(data):
     # Связи Many-To-Many надо подгружать после всех push_table_to_db.
     push_m2m_relationships_to_db(
         data=data,
-        table_name_in_data='m2m_freelancers_who_responded',
-        model_class_a=User,
-        model_class_a_prop_name_in_data='user_id',
-        model_class_a_prop_name_in_class='id',
-        model_class_a_relationship_in_class='responded_to_tasks',
-        model_class_b=Task,
-        model_class_b_prop_name_in_data='task_id',
-        model_class_b_prop_name_in_class='id'
+        a_class=User,
+        a_relationship_prop_name='responded_to_tasks',
+        b_class=Task
     )
 
 
