@@ -47,3 +47,8 @@ class ChangeTaskStatusForm(FlaskForm):
     task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
     status = SelectField('Новый статус', choices=[], validators=[DataRequired()])
     submit = SubmitField('Сменить статус')
+
+class DismissFrilancerFromTaskForm(FlaskForm):
+    task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
+    user_id = SelectField('Выбрать Фрилансера', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Отцепить!')

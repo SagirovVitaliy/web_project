@@ -1,8 +1,14 @@
 from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_migrate import Migrate
 
-from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole, freelancers_who_responded
-from webapp.forms import TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo, ChangeTaskStatusForm
+from webapp.model import (
+    db, Email, Phone, Task, TaskStatus, Tag, User, UserRole,
+    freelancers_who_responded
+    )
+from webapp.forms import (
+    TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo,
+    ChangeTaskStatusForm, DismissFrilancerFromTaskForm
+    )
 
 
 def create_app():
@@ -34,6 +40,25 @@ def create_app():
         print(f'task.freelancer:{freelancer}')
         print(f'task.freelancers:{freelancers}')
         print()
+
+
+    def get_task_status_id(code):
+        '''Получить по текстовому коду, id для task_status.'''
+        task_status = TaskStatus.query.filter(
+            TaskStatus.status == f'{code}'
+        ).first()
+        if task_status == None:
+            raise Exception(f'Database does not have TaskStatus "{code}"')
+        return task_status.id
+
+    def get_user_role_id(code):
+        '''Получить по текстовому коду, id для user_role.'''
+        user_role = UserRole.query.filter(
+            UserRole.role == f'{code}'
+        ).first()
+        if user_role == None:
+            raise Exception(f'Database does not have TaskStatus "{code}"')
+        return user_role.id
 
 
     @app.route('/')
@@ -265,7 +290,6 @@ def create_app():
                 form_url=form_url
             )
 
-
     @app.route('/cancel_task', methods=['GET', 'POST'])
     def cancel_task():
         '''Задать маршрут по которому можно тестировать логику.
@@ -289,7 +313,7 @@ def create_app():
 
             title += ' GET'
             return render_template(
-                'cancel_task.form.html',
+                'change_task_status.form.html',
                 title=title,
                 form=form,
                 form_url=form_url
@@ -338,13 +362,221 @@ def create_app():
                 title += ' SUCCESS'
                 task = Task.query.get(current_task_id)
                 return render_template(
-                    'cancel_task.success.html',
+                    'change_task_status.success.html',
                     title=title,
                     task=task.__dict__
                 )
 
             return render_template(
-                'cancel_task.form.html',
+                'change_task_status.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+    @app.route('/dismiss_confirmed_freelancer_from_task', methods=['GET', 'POST'])
+    def dismiss_confirmed_freelancer_from_task():
+        '''Задать маршрут по которому можно тестировать логику.
+
+        Здесь мы хотим тестировать логику:
+        ----------------------------------
+
+        Отрезок негативного пути - Отцепляем от Задачи одного из предварительно
+        Откликнувшихся Фрилансеров.
+        '''
+        title = 'Тестируем freelancer.dismiss_confirmed_freelancer_from_task'
+        form_url = url_for('dismiss_confirmed_freelancer_from_task')
+
+        form = DismissFrilancerFromTaskForm()
+        form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
+        form.user_id.choices = [(g.id, g.username) for g in User.query.all()]
+
+        if request.method == 'GET':
+
+            title += ' GET'
+            return render_template(
+                'dismiss_freelancer_from_task.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+        elif request.method == 'POST':
+            
+            title += ' POST'
+            if form.validate_on_submit():
+
+                current_task_id = request.form.get('task_id');
+                current_user_id = request.form.get('user_id');
+
+                # Проверяем - все ли входные данные адекватны.
+                status_created   = get_task_status_id(code='created');
+                status_in_work   = get_task_status_id(code='in_work');
+                status_in_review = get_task_status_id(code='in_review');
+
+                freelancer_role = get_user_role_id(code='freelancer')
+
+                task = Task.query.get(current_task_id)
+                if task == None:
+                    raise Exception('Requested task does not exist')
+
+                freelancer = User.query.filter(
+                    User.id == current_user_id,
+                    User.role == freelancer_role
+                ).first()
+                if freelancer == None:
+                    raise Exception('Requested freelancer does not exist')
+
+                if task.freelancer != freelancer.id:
+                    raise Exception('Requested freelancer is not connected to requested task as task.freelancer')
+
+                # На время тестов.
+                task_debug_info1 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_advanced_debug_dictionary()
+                )
+
+                # Отцепить от Задачи - Фрилансера-подтверждённого исполнителя.
+                task.freelancer = None
+                if (
+                        task.status == status_in_work or
+                        task.status == status_in_review
+                    ):
+                    # Если это был удалён последний Фрилансер в списке; и
+                    # если задача - в Статусе когда нельзя делать
+                    # последующие шаги к Главной Цели, не имея Фрилансеров в
+                    # этом списке, тогда надо перевести Задачу в Статус
+                    # 'created'.
+                    task.status = status_created
+                db.session.commit()
+
+                # На время тестов.
+                task_debug_info2 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_advanced_debug_dictionary()
+                )
+
+                title += ' SUCCESS'
+                return render_template(
+                    'dismiss_freelancer_from_task.success.html',
+                    title=title,
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
+                )
+
+            return render_template(
+                'dismiss_freelancer_from_task.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+    @app.route('/dismiss_responded_freelancer_from_task', methods=['GET', 'POST'])
+    def dismiss_responded_freelancer_from_task():
+        '''Задать маршрут по которому можно тестировать логику.
+
+        Здесь мы хотим тестировать логику:
+        ----------------------------------
+
+        Отрезок негативного пути - Отцепляем от Задачи одного из предварительно
+        Откликнувшихся Фрилансеров.
+        '''
+        title = 'Тестируем freelancer.dismiss_responded_freelancer_from_task'
+        form_url = url_for('dismiss_responded_freelancer_from_task')
+
+        form = DismissFrilancerFromTaskForm()
+        form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
+        form.user_id.choices = [(g.id, g.username) for g in User.query.all()]
+
+        if request.method == 'GET':
+
+            title += ' GET'
+            return render_template(
+                'dismiss_freelancer_from_task.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+        elif request.method == 'POST':
+            
+            title += ' POST'
+            if form.validate_on_submit():
+
+                current_task_id = request.form.get('task_id');
+                current_user_id = request.form.get('user_id');
+
+                # Проверяем - все ли входные данные адекватны.
+                status_created              = get_task_status_id(code='created');
+                status_freelancers_detected = get_task_status_id(code='freelancers_detected');
+
+                freelancer_role = get_user_role_id(code='freelancer')
+
+                task = Task.query.get(current_task_id)
+                if task == None:
+                    raise Exception(f'Requested task(id:{current_task_id}) does not exist')
+
+                freelancer = User.query.filter(
+                    User.role == freelancer_role,
+                    User.id == current_user_id
+                ).first()
+                if freelancer == None:
+                    raise Exception(f'Requested freelancer(id:{current_user_id}) does not exist')
+
+                freelancer = task.freelancers_who_responded.filter(
+                    User.role == freelancer_role,
+                    User.id == current_user_id
+                ).first()
+                if freelancer == None:
+                    raise Exception(f'Requested freelancer(id:{current_user_id}) is not connected to requested task(id:{current_task_id}) as task.freelancers_who_responded')
+
+                # На время тестов.
+                task_debug_info1 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_advanced_debug_dictionary()
+                )
+
+                # Отцепить от Задачи - Конкретного Предваритально
+                # Откликнувшегося Фрилансера.
+                freelancers = task.freelancers_who_responded.filter(
+                    User.role == freelancer_role,
+                    User.id != current_user_id
+                )
+                task.freelancers_who_responded = freelancers
+                if task.status == status_freelancers_detected:
+                    if not freelancers.count() > 0:
+                        # Если это был удалён последний Фрилансер в списке; и
+                        # если задача - в Статусе когда нельзя делать
+                        # последующие шаги к Главной Цели, не имея Фрилансеров в
+                        # этом списке, тогда надо перевести Задачу в Статус
+                        # 'created'.
+                        task.status = status_created
+                db.session.commit()
+
+                # На время тестов.
+                task_debug_info2 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_advanced_debug_dictionary()
+                )
+
+                title += ' SUCCESS'
+                return render_template(
+                    'dismiss_freelancer_from_task.success.html',
+                    title=title,
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
+                )
+
+            return render_template(
+                'dismiss_freelancer_from_task.form.html',
                 title=title,
                 form=form,
                 form_url=form_url

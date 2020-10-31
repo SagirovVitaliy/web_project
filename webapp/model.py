@@ -171,6 +171,36 @@ class Task(db.Model):
         db.ForeignKey('tag.id', ondelete='CASCADE')
         )
 
+    def generate_basic_debug_dictionary(self):
+        return {
+            'id': self.id,
+            'task_name': self.task_name,
+            'description': self.description,
+            'price': self.price,
+            'deadline': self.deadline,
+            'status': self.status,
+            'customer': self.customer,
+            'freelancer': self.freelancer,
+            'tag': self.tag,
+        }
+
+    def generate_advanced_debug_dictionary(self):
+        packet = self.generate_basic_debug_dictionary()
+        if packet['status'] != None:
+            packet['status'] = TaskStatus.query.filter(
+                TaskStatus.id == packet['status']
+            ).first()
+        if packet['customer'] != None:
+            packet['customer'] = User.query.filter(
+                User.id == packet['customer']
+            ).first()
+        if packet['freelancer'] != None:
+            packet['freelancer'] = User.query.filter(
+                User.id == packet['freelancer']
+            ).first()
+        packet['freelancers_who_responded'] = self.freelancers_who_responded.all()
+        return packet
+
     def __repr__(self):
         return prettify(
             class_label='Task',
