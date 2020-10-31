@@ -15,7 +15,7 @@
     <h1>{{ title }}</h1>
         <div class="row">
 
-          <div class="col-8">
+          <div class="col-4">
             {% with messages = get_flashed_messages() %}
                   {% if messages %}
                     <div class="alert alert-warning" role="alert">
@@ -25,18 +25,60 @@
                     </div>
                   {% endif %}
             {% endwith %}
-
- 
-          <div class="col-4">
-            <form action="{{url_for( 'personal_area_customer_in_work_two', task_id=6)}}" method="POST">
+          <div class="col-8">
+            <form action="{{url_for( 'user_registration')}}" method="POST">
               {{ form.hidden_tag() }}
               <div class="form-group">
               </div>
               <div>
                 </br>
                 {{ form.csrf_token }}
-                {{ form.freelancers() }}
+                
+                {{ form.username.label }}
+                {{ form.username }}
+                {% for error in form.username.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+
+                {{ form.email.label }}
+                {{ form.email }}
+                {% for error in form.email.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+                
+                {{ form.phone.label }}
+                {{ form.phone }}
+                {% for error in form.phone.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+
+                {{ form.public_bio.label }}
+                {{ form.public_bio }}
+                {% for error in form.public_bio.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+                
+                {{ form.role.label }}
+                {{ form.role }}
+                {% for error in form.role.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+
+                {{ form.password1.label }}
+                {{ form.password1 }}
+                {% for error in form.password1.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+
+                {{ form.password2.label }}
+                {{ form.password2 }}
+                {% for error in form.password2.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+
+                {{ form.submit.label }}
                 {{ form.submit }}
+                
               </div>
             </form>
         </div>

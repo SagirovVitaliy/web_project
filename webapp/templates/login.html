@@ -25,17 +25,22 @@
                     </div>
                   {% endif %}
             {% endwith %}
-
- 
           <div class="col-4">
-            <form action="{{url_for( 'personal_area_customer_in_work_two', task_id=6)}}" method="POST">
+            <form action="{{url_for( 'login')}}" method="POST">
               {{ form.hidden_tag() }}
               <div class="form-group">
               </div>
               <div>
                 </br>
                 {{ form.csrf_token }}
-                {{ form.freelancers() }}
+
+                {{ form.username.label }}
+                {{ form.username }}
+
+                {{ form.password.label }}
+                {{ form.password }}
+
+                {{ form.submit.label }}
                 {{ form.submit }}
               </div>
             </form>

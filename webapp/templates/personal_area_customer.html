@@ -34,16 +34,21 @@
           <div class="col-4">
             <form action="{{url_for( 'update_status', task_id=6 )}}" method="POST">
               {{ form.hidden_tag() }}
+              {{ form_logout.hidden_tag() }}
               <div class="form-group">
                 {{ form.csrf_token }}
-                {{ form.status }}
-                {% for error in form.status.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
+                {{ form_logout.csrf_token }}
+
+                {{ form.status.label }}
+                {{ form.status() }}
               </div>
               <div>
                 </br>
+                {{ form.submit.label}}
                 {{ form.submit }}
+
+                {{ form_logout.submit.label }}
+                {{ form_logout.submit }}
               </div>
             </form>
         </div>

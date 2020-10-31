@@ -1,8 +1,9 @@
 from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_migrate import Migrate
+from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 
 from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole, freelancers_who_responded
-from webapp.forms import TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo, ChangeTaskStatusForm
+from webapp.forms import TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo, ChangeTaskStatusForm, LoginForm, IndexForm, RegistrationForm, LogoutForm
 
 
 def create_app():
@@ -11,10 +12,94 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db, render_as_batch=True)
 
-    @app.route('/')
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'login'
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(user_id)
+
+    @app.route('/', methods=['GET', 'POST'])
     def index():
-        world = 'word'
-        return render_template('hello_world.html', world=world)
+        title = 'Главная страница'
+        form = IndexForm()
+
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                if form.submit_for_signin.data:
+                    return redirect(url_for('login'))
+                if form.submit_for_signup.data:
+                    return redirect(url_for('user_registration'))
+            else:
+                flash('Что-то пошло не так')
+                return render_template('index.html', title=title, form=form)
+
+        return render_template('index.html', title=title, form=form)
+
+    @app.route('/user_registration', methods=['GET', 'POST'])
+    def user_registration():
+        title = 'Регистрация пользователя'
+        form = RegistrationForm()
+        form.role.choices = [(role.id, role.role) for role in UserRole.query.all()]
+
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                username = form.username.data
+                if User.query.filter(User.username == username).count():
+                    flash('Пользователь с таким именем уже существует')
+                
+                password1 = form.password1.data
+                password2 = form.password2.data
+
+                if not password1 == password2:
+                    flash('Пароли не совпадают')
+
+                user = User(
+                    username=username,
+                    public_bio=form.public_bio.data,
+                    role=form.role.data,
+                    email=form.email.data,
+                    phone=form.phone.data,
+                )
+                user.set_password(password1)
+
+                db.session.add(user)
+                db.session.commit()
+                flash('Вы успешно зарегистрированы!')
+                return redirect(url_for('login'))
+
+        return render_template('registration.html', title=title, form=form)
+
+    @app.route('/login', methods=['GET', 'POST'])
+    def login():
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
+
+        title = 'login'
+        form = LoginForm()
+
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                user = User.query.filter(User.username == form.username.data).first()
+                if user and user.check_password(form.password.data):
+                    login_user(user)
+                    flash('Вы успешно зашли на сайт')
+                    if user.role == 2:
+                        return redirect(url_for('personal_area_customer'))
+                    elif user.role == 1:
+                        return redirect(url_for('personal_area_freelancer'))
+                    else:
+                        flash('Неправильное имя или пароль')
+                        return render_template('login.html', title=title, form=form)
+
+        return render_template('login.html', title=title, form=form)
+
+    @app.route('/logout')
+    def logout():
+        logout_user()
+        flash('Вы успешно вышли')
+        return redirect(url_for('index'))
     
     @app.route('/create_task')
     def create_task():
@@ -24,6 +109,7 @@ def create_app():
 
     @app.route('/process_create_task', methods=['POST'])
     def process_create_task():
+        title = 'Создание заказа'
         task_form = TaskForm()
         status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
         tag = Tag.query.filter(Tag.tag == 'Разведение ежей').one()
@@ -48,7 +134,6 @@ def create_app():
             return redirect(url_for('personal_area_customer'))
 
         flash('Введите все данные!')
-        title = 'Создание заказа'
         return render_template('create_task.html', title=title, form=task_form)
 
     @app.route('/personal_area_customer')
@@ -57,13 +142,18 @@ def create_app():
         tasks = Task.query.all()
         form = ChoiseForm()
         form.status.choices = [g.status for g in TaskStatus.query.all()[:2]]
+        form_logout = LogoutForm()
 
-        return render_template('personal_area_customer.html', title=title, tasks=tasks, form=form)
+        return render_template('personal_area_customer.html', title=title, tasks=tasks, form=form, form_logout=form_logout)
 
     @app.route('/update_status/<int:task_id>', methods=['POST'])
     def update_status(task_id):
         form = ChoiseForm()
         form.status.choices = [g.status for g in TaskStatus.query.all()[:2]]
+        form_logout = LogoutForm()
+
+        if form_logout.validate_on_submit():
+            return redirect(url_for('logout'))
 
         if form.validate_on_submit():
             status = form.status.data
@@ -71,26 +161,31 @@ def create_app():
             task_status = TaskStatus.query.filter(TaskStatus.status == status).one()
             task.status = task_status.id
             db.session.commit()
-                
-        flash(f"Статус заказа изменён на {status}")
-        return redirect(url_for('personal_area_customer'))
+            flash(f"Статус заказа изменён на {status}")
+            return redirect(url_for('personal_area_customer'))
 
     @app.route('/personal_area_freelancer/<int:user_id>', methods=['GET', 'POST'])
     def personal_area_freelancer(user_id):
         title = 'Все заказы'
         form = FreelancerForm()
         form.tasks.choices = [task.id for task in Task.query.filter(Task.status.in_([2,3])).all()]
+        form_logout = LogoutForm()
 
-        if form.validate_on_submit():
-            task = Task.query.get(form.tasks.data)
-            user = User.query.get(user_id)
-            task.freelancers_who_responded.append(user)
-            status = TaskStatus.query.filter(TaskStatus.status == 'freelancers_detected').one()
-            task.status = status.id
-            db.session.commit()
-            flash(f"Статус заказа изменён на {status}")
 
-        return render_template('personal_area_freelancer.html', title=title, form=form)
+        if request.method == 'POST':
+            if form_logout.validate_on_submit():
+                return redirect(url_for('logout'))
+            
+            if form.validate_on_submit():
+                task = Task.query.get(form.tasks.data)
+                user = User.query.get(user_id)
+                task.freelancers_who_responded.append(user)
+                status = TaskStatus.query.filter(TaskStatus.status == 'freelancers_detected').one()
+                task.status = status.id
+                db.session.commit()
+                flash(f"Статус заказа изменён на {status}")
+
+        return render_template('personal_area_freelancer.html', title=title, form=form, form_logout=form_logout)
 
     @app.route('/personal_area_customer_in_work/<int:customer_id>', methods=['GET', 'POST'])
     def personal_area_customer_in_work(customer_id):

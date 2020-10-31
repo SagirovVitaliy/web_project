@@ -29,10 +29,16 @@
           <div class="col-4">
             <form action="{{url_for( 'personal_area_freelancer', user_id=2 )}}" method="POST">
               {{ form.hidden_tag() }}
+              {{ form_logout.hidden_tag() }}
               <div>
                 {{ form.csrf_token }}
-                {{ form.tasks }}
+                {{ form.tasks() }}
+
+                {{ form.submit.label }}
                 {{ form.submit }}
+
+                {{ form_logout.submit.label }}
+                {{ form_logout.submit }}
               </div>
             </form>
         </div>
