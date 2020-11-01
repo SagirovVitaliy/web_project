@@ -1,0 +1,27 @@
+{# Этот темплайт - часть виджета value_html_inspector.
+    
+    Как использовать темплайты виджета value_html_inspector:
+    В своём коде подключите
+        {% set item_value = example_variable %}
+        {% include 'value_html_inspector.html' %}
+    
+    где example_variable - это значение, состояние которого вы хотите
+    посмотреть.
+#}
+{# В этом темлпайте хранится набор вписанных стилей. #}
+<style>
+    .value_html_inspector__table {
+        margin-top: -1px;
+        line-height: 1.75;
+    }
+    .value_html_inspector__table th,
+    .value_html_inspector__table td {
+        padding: 0 1rem 0 0 !important;
+    }
+    .value_html_inspector__dictionary_th {
+        word-break: break-all;
+        width: 8em;
+    }
+    .value_html_inspector__list_th {
+    }
+</style>

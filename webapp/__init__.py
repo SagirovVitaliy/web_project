@@ -7,7 +7,7 @@ from webapp.model import (
     )
 from webapp.forms import (
     TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo,
-    ChangeTaskStatusForm, DismissFrilancerFromTaskForm
+    ChangeTaskStatusForm, DismissFrilancerFromTaskForm, ViewTaskForm
     )
 
 
@@ -16,30 +16,6 @@ def create_app():
     app.config.from_pyfile('config.py')
     db.init_app(app)
     migrate = Migrate(app, db, render_as_batch=True)
-
-
-    def print_task_state(task_id, label=''):
-        '''Распечатать состояние Задачи и связанных с ней объектов.'''
-        task = Task.query.get(task_id)
-        status = TaskStatus.query.filter(
-            TaskStatus.id == task.status
-        ).first()
-        customer = User.query.filter(
-            User.id == task.customer
-        ).first()
-        freelancer = User.query.filter(
-            User.id == task.freelancer
-        ).first()
-        freelancers = task.freelancers_who_responded.all()
-        print()
-        print(f'{label}:')
-        print(f'------')
-        print(f'task:{task}')
-        print(f'task.status:{status}')
-        print(f'task.customer:{customer}')
-        print(f'task.freelancer:{freelancer}')
-        print(f'task.freelancers:{freelancers}')
-        print()
 
 
     def get_task_status_id(code):
@@ -198,7 +174,6 @@ def create_app():
 
         if request.method == 'GET':
 
-            title += ' GET'
             return render_template(
                 'change_task_status.form.html',
                 title=title,
@@ -207,23 +182,41 @@ def create_app():
             )
 
         elif request.method == 'POST':
-            
-            title += ' POST'
+
             if form.validate_on_submit():
 
                 current_task_id = request.form.get('task_id');
                 new_status_id = request.form.get('status');
 
+                # На время тестов.
+                task_debug_info1 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_level_2_debug_dictionary()
+                )
+
+                # Проверяем - все ли входные данные адекватны.
                 task = Task.query.get(current_task_id)
+                if task == None:
+                    raise Exception(f'Requested task(id:{current_task_id}) does not exist')
+
                 task.status = new_status_id
                 db.session.commit()
 
-                title += ' SUCCESS'
-                task = Task.query.get(current_task_id)
+                # На время тестов.
+                task_debug_info2 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_level_2_debug_dictionary()
+                )
+
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
-                    task=task.__dict__
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
                 )
 
             return render_template(
@@ -255,7 +248,6 @@ def create_app():
 
         if request.method == 'GET':
 
-            title += ' GET'
             return render_template(
                 'change_task_status.form.html',
                 title=title,
@@ -265,22 +257,40 @@ def create_app():
 
         elif request.method == 'POST':
             
-            title += ' POST'
             if form.validate_on_submit():
 
                 current_task_id = request.form.get('task_id');
                 new_status_id = request.form.get('status');
 
+                # На время тестов.
+                task_debug_info1 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_level_2_debug_dictionary()
+                )
+
+                # Проверяем - все ли входные данные адекватны.
                 task = Task.query.get(current_task_id)
+                if task == None:
+                    raise Exception(f'Requested task(id:{current_task_id}) does not exist')
+
                 task.status = new_status_id
                 db.session.commit()
 
-                title += ' SUCCESS'
-                task = Task.query.get(current_task_id)
+                # На время тестов.
+                task_debug_info2 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_level_2_debug_dictionary()
+                )
+
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
-                    task=task.__dict__
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
                 )
 
             return render_template(
@@ -311,7 +321,6 @@ def create_app():
 
         if request.method == 'GET':
 
-            title += ' GET'
             return render_template(
                 'change_task_status.form.html',
                 title=title,
@@ -320,19 +329,21 @@ def create_app():
             )
 
         elif request.method == 'POST':
-            
-            title += ' POST'
+
             if form.validate_on_submit():
 
                 current_task_id = request.form.get('task_id');
                 new_status_id = request.form.get('status');
 
-                freelancer_role = UserRole.query.filter(UserRole.role == 'freelancer').first()
-                if freelancer_role == None:
-                    raise Exception('Database does not have UserRole "freelancer"')
+                freelancer_role = get_user_role_id(code='freelancer')
 
                 # На время тестов.
-                print_task_state(task_id=current_task_id, label='before');
+                task_debug_info1 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_level_2_debug_dictionary()
+                )
 
                 # Поставить Задаче новый Статус.
                 task = Task.query.get(current_task_id)
@@ -341,8 +352,8 @@ def create_app():
 
                 # Отцепить от Задачи - Фрилансера-подтверждённого исполнителя.
                 freelancer = User.query.filter(
-                    User.id == task.freelancer,
-                    User.role == freelancer_role.id
+                    User.role == freelancer_role,
+                    User.id == task.freelancer
                 ).first()
                 if freelancer != None:
                     task.freelancer = None
@@ -352,19 +363,23 @@ def create_app():
                 # Фрилансеров.
                 freelancers = task.freelancers_who_responded.all()
                 task.freelancers_who_responded = task.freelancers_who_responded.filter(
-                    User.role != freelancer_role.id
+                    User.role != freelancer_role
                 )
                 db.session.commit()
 
                 # На время тестов.
-                print_task_state(task_id=current_task_id, label='after');
+                task_debug_info2 = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_level_2_debug_dictionary()
+                )
 
-                title += ' SUCCESS'
-                task = Task.query.get(current_task_id)
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
-                    task=task.__dict__
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
                 )
 
             return render_template(
@@ -389,11 +404,10 @@ def create_app():
 
         form = DismissFrilancerFromTaskForm()
         form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
-        form.user_id.choices = [(g.id, g.username) for g in User.query.all()]
+        form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
 
         if request.method == 'GET':
 
-            title += ' GET'
             return render_template(
                 'dismiss_freelancer_from_task.form.html',
                 title=title,
@@ -402,8 +416,7 @@ def create_app():
             )
 
         elif request.method == 'POST':
-            
-            title += ' POST'
+
             if form.validate_on_submit():
 
                 current_task_id = request.form.get('task_id');
@@ -435,7 +448,7 @@ def create_app():
                     Task
                     .query
                     .get(current_task_id)
-                    .generate_advanced_debug_dictionary()
+                    .generate_level_2_debug_dictionary()
                 )
 
                 # Отцепить от Задачи - Фрилансера-подтверждённого исполнителя.
@@ -457,10 +470,9 @@ def create_app():
                     Task
                     .query
                     .get(current_task_id)
-                    .generate_advanced_debug_dictionary()
+                    .generate_level_2_debug_dictionary()
                 )
 
-                title += ' SUCCESS'
                 return render_template(
                     'dismiss_freelancer_from_task.success.html',
                     title=title,
@@ -490,11 +502,10 @@ def create_app():
 
         form = DismissFrilancerFromTaskForm()
         form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
-        form.user_id.choices = [(g.id, g.username) for g in User.query.all()]
+        form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
 
         if request.method == 'GET':
 
-            title += ' GET'
             return render_template(
                 'dismiss_freelancer_from_task.form.html',
                 title=title,
@@ -503,8 +514,7 @@ def create_app():
             )
 
         elif request.method == 'POST':
-            
-            title += ' POST'
+
             if form.validate_on_submit():
 
                 current_task_id = request.form.get('task_id');
@@ -539,7 +549,7 @@ def create_app():
                     Task
                     .query
                     .get(current_task_id)
-                    .generate_advanced_debug_dictionary()
+                    .generate_level_2_debug_dictionary()
                 )
 
                 # Отцепить от Задачи - Конкретного Предваритально
@@ -564,10 +574,9 @@ def create_app():
                     Task
                     .query
                     .get(current_task_id)
-                    .generate_advanced_debug_dictionary()
+                    .generate_level_2_debug_dictionary()
                 )
 
-                title += ' SUCCESS'
                 return render_template(
                     'dismiss_freelancer_from_task.success.html',
                     title=title,
@@ -577,6 +586,56 @@ def create_app():
 
             return render_template(
                 'dismiss_freelancer_from_task.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+    @app.route('/view_task', methods=['GET', 'POST'])
+    def view_task():
+        '''Задать маршрут по которому можно просмотреть состояние Задачи.'''
+        title = 'Просматриваем состояние Задачи'
+        form_url = url_for('view_task')
+
+        form = ViewTaskForm()
+        form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
+
+        if request.method == 'GET':
+
+            return render_template(
+                'view_task.form.html',
+                title=title,
+                form=form,
+                form_url=form_url
+            )
+
+        elif request.method == 'POST':
+
+            if form.validate_on_submit():
+
+                current_task_id = request.form.get('task_id');
+
+                # Проверяем - все ли входные данные адекватны.
+                task = Task.query.get(current_task_id)
+                if task == None:
+                    raise Exception(f'Requested task(id:{current_task_id}) does not exist')
+
+                # На время тестов.
+                task_debug_info = (
+                    Task
+                    .query
+                    .get(current_task_id)
+                    .generate_level_2_debug_dictionary()
+                )
+
+                return render_template(
+                    'view_task.success.html',
+                    title=title,
+                    task=task_debug_info
+                )
+
+            return render_template(
+                'view_task.form.html',
                 title=title,
                 form=form,
                 form_url=form_url

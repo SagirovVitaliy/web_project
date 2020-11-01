@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired
 
 
 class UserForm(FlaskForm):
-    username = StringField('Имя пользователя', validators=[DataRequired()])
+    user_name = StringField('Имя пользователя', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     submit = SubmitField('Отправить')
 
@@ -41,14 +41,20 @@ class ChangeTaskStatusForm(FlaskForm):
     task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
     status = SelectField('Новый статус', choices=[], validators=[DataRequired()])
     submit = SubmitField('Сменить статус')
-    
-    
+
+
 class ChangeTaskStatusForm(FlaskForm):
     task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
     status = SelectField('Новый статус', choices=[], validators=[DataRequired()])
     submit = SubmitField('Сменить статус')
 
+
 class DismissFrilancerFromTaskForm(FlaskForm):
     task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
     user_id = SelectField('Выбрать Фрилансера', choices=[], validators=[DataRequired()])
     submit = SubmitField('Отцепить!')
+
+
+class ViewTaskForm(FlaskForm):
+    task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Посмотреть')

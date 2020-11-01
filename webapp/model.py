@@ -71,7 +71,7 @@ freelancers_who_responded = db.Table('freelancers_who_responded',
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
+    user_name = db.Column(db.String(64), index=True, unique=True)
     password = db.Column(db.String(128))
     public_bio = db.Column(db.String())
 
@@ -106,7 +106,7 @@ class User(db.Model):
             class_label='User',
             prop_line_list=[
                 f'id:{self.id}',
-                f'username:{self.username}',
+                f'user_name:{self.user_name}',
                 f'role:{self.role}',
                 f'email:{self.email}',
                 f'phone:{self.phone}',
@@ -115,6 +115,53 @@ class User(db.Model):
                 f'public_bio:{self.public_bio}',
             ]
         )
+
+    def generate_level_0_debug_dictionary(self):
+        '''Собрать самые низкоуровневые свойства.'''
+        return {
+            '< class >': '< ' + self.__tablename__ + ' >',
+            'id': self.id,
+            'user_name': self.user_name,
+            'role': self.role,
+            'email': self.email,
+            'phone': self.phone,
+            'tag': self.tag,
+            'password': self.password,
+            'public_bio': self.public_bio,
+        }
+
+    def generate_level_1_debug_dictionary(self):
+        '''Собрать связи о2о, о2м, которые задаются вручную.'''
+        packet = self.generate_level_0_debug_dictionary()
+        if packet['role'] != None:
+            packet['role'] = UserRole.query.filter(
+                UserRole.id == packet['role']
+            ).first()
+        if packet['email'] != None:
+            packet['email'] = Email.query.filter(
+                Email.id == packet['email']
+            ).first()
+        if packet['phone'] != None:
+            packet['phone'] = Phone.query.filter(
+                Phone.id == packet['phone']
+            ).first()
+        if packet['tag'] != None:
+            packet['tag'] = Tag.query.filter(
+                Tag.id == packet['tag']
+            ).first()
+        return packet
+
+    def generate_level_2_debug_dictionary(self):
+        '''Собрать связи которые задаются через SQLAlchemy.relationship.
+        
+        Внимание! Внутри этой функции запрещено у элементов других классов,
+        которые прикреплены к этом объекту, запускать их имплементацию метода
+        generate_level_2_debug_dictionary - это нужно чтобы гарантировать
+        отсутствие петли взаимных запусков.
+        '''
+        packet = self.generate_level_1_debug_dictionary()
+        packet['responded_to_tasks'] = self.responded_to_tasks.all()
+        return packet
 
 
 class TaskStatus(db.Model):
@@ -171,36 +218,6 @@ class Task(db.Model):
         db.ForeignKey('tag.id', ondelete='CASCADE')
         )
 
-    def generate_basic_debug_dictionary(self):
-        return {
-            'id': self.id,
-            'task_name': self.task_name,
-            'description': self.description,
-            'price': self.price,
-            'deadline': self.deadline,
-            'status': self.status,
-            'customer': self.customer,
-            'freelancer': self.freelancer,
-            'tag': self.tag,
-        }
-
-    def generate_advanced_debug_dictionary(self):
-        packet = self.generate_basic_debug_dictionary()
-        if packet['status'] != None:
-            packet['status'] = TaskStatus.query.filter(
-                TaskStatus.id == packet['status']
-            ).first()
-        if packet['customer'] != None:
-            packet['customer'] = User.query.filter(
-                User.id == packet['customer']
-            ).first()
-        if packet['freelancer'] != None:
-            packet['freelancer'] = User.query.filter(
-                User.id == packet['freelancer']
-            ).first()
-        packet['freelancers_who_responded'] = self.freelancers_who_responded.all()
-        return packet
-
     def __repr__(self):
         return prettify(
             class_label='Task',
@@ -216,6 +233,64 @@ class Task(db.Model):
                 f'description:{self.description}',
             ]
         )
+
+    def generate_level_0_debug_dictionary(self):
+        '''Собрать самые низкоуровневые свойства.'''
+        return {
+            '< class >': '< ' + self.__tablename__ + ' >',
+            'id': self.id,
+            'task_name': self.task_name,
+            'description': self.description,
+            'price': self.price,
+            'deadline': self.deadline,
+            'status': self.status,
+            'customer': self.customer,
+            'freelancer': self.freelancer,
+            'tag': self.tag,
+        }
+
+    def generate_level_1_debug_dictionary(self):
+        '''Собрать связи о2о, о2м, которые задаются вручную.'''
+        packet = self.generate_level_0_debug_dictionary()
+        if packet['status'] != None:
+            packet['status'] = TaskStatus.query.filter(
+                TaskStatus.id == packet['status']
+            ).first()
+        if packet['customer'] != None:
+            packet['customer'] = User.query.filter(
+                User.id == packet['customer']
+            ).first()
+        if packet['freelancer'] != None:
+            packet['freelancer'] = User.query.filter(
+                User.id == packet['freelancer']
+            ).first()
+        return packet
+
+    def generate_level_2_debug_dictionary(self):
+        '''Собрать связи которые задаются через SQLAlchemy.relationship.
+        
+        Внимание! Внутри этой функции запрещено у элементов других классов,
+        которые прикреплены к этом объекту, запускать их имплементацию метода
+        generate_level_2_debug_dictionary - это нужно чтобы гарантировать
+        отсутствие петли взаимных запусков.
+        '''
+        packet = self.generate_level_1_debug_dictionary()
+        if packet['customer'] != None:
+            packet['customer'] = (
+                packet['customer'].generate_level_1_debug_dictionary()
+            )
+        if packet['freelancer'] != None:
+            packet['freelancer'] = (
+                packet['freelancer'].generate_level_1_debug_dictionary()
+            )
+        packet['freelancers_who_responded'] = self.freelancers_who_responded.all()
+
+        freelancers = []
+        for user in packet['freelancers_who_responded']:
+            freelancers.append(user.generate_level_1_debug_dictionary())
+        packet['freelancers_who_responded'] = freelancers
+
+        return packet
 
       
 class TaskComment(db.Model):

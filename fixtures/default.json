@@ -25,13 +25,13 @@
     ],
     "user": [
         {
-            "username": "alex_syystem",
-            "password": "lcasdnjkncadkc",
+            "user_name": "alex_syystem",
+            "password": "example",
             "public_bio": "профессионально изготавливаю злых ежей"
         },
         {
-            "username": "german_gref",
-            "password": "mprewvewjgrn",
+            "user_name": "german_gref",
+            "password": "example",
             "public_bio": "Компания с тысячелетней историей поставки злых ежей"
         }
     ],
