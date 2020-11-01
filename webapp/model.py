@@ -44,7 +44,7 @@ class Phone(db.Model):
     phone = db.Column(db.Integer, unique=True)
     
     def __repr__(self):
-        return prettify(
+        return prettify(TaskForm
             class_label='Phone',
             prop_line_list=[
                 f'id:{self.id}',
@@ -55,7 +55,7 @@ class Phone(db.Model):
 
 class UserRole(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    role = db.Column(db.String(), nullable=False)
+    role = db.Column(db.String())
     
     def __repr__(self):
         return prettify(
@@ -75,7 +75,7 @@ freelancers_who_responded = db.Table('freelancers_who_responded',
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
+    user_name = db.Column(db.String(64), index=True, unique=True)
     password = db.Column(db.String(128))
     public_bio = db.Column(db.String())
 

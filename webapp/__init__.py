@@ -3,7 +3,13 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 
 from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole, freelancers_who_responded
-from webapp.forms import TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo, ChangeTaskStatusForm, LoginForm, IndexForm, RegistrationForm, LogoutForm
+from webapp.forms import (
+    IndexForm, RegistrationForm, LoginForm, LogoutForm, ChoiceTaskForm, ChangeTaskStatusForm1, 
+    SubmitForCreateTaskForm, CreateTaskForm, ChoiceFreelancerForm, ChangeTaskStatusForm
+    )
+
+
+ROLE = {'FREELANCER': 1, 'CUSTOMER': 2}
 
 
 def create_app():
@@ -30,14 +36,14 @@ def create_app():
                 if form.submit_for_signin.data:
                     return redirect(url_for('login'))
                 if form.submit_for_signup.data:
-                    return redirect(url_for('user_registration'))
+                    return redirect(url_for('registration'))
             else:
                 flash('Что-то пошло не так')
                 return render_template('index.html', title=title, form=form)
 
         return render_template('index.html', title=title, form=form)
 
-    @app.route('/user_registration', methods=['GET', 'POST'])
+    @app.route('/registration', methods=['GET', 'POST'])
     def user_registration():
         title = 'Регистрация пользователя'
         form = RegistrationForm()
@@ -74,6 +80,7 @@ def create_app():
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if current_user.is_authenticated:
+            flash('Вы уже вошли')
             return redirect(url_for('index'))
 
         title = 'login'
@@ -81,14 +88,14 @@ def create_app():
 
         if request.method == 'POST':
             if form.validate_on_submit():
-                user = User.query.filter(User.username == form.username.data).first()
+                user = User.query.filter(User.user_name == form.user_name.data).first()
                 if user and user.check_password(form.password.data):
                     login_user(user)
                     flash('Вы успешно зашли на сайт')
-                    if user.role == 2:
-                        return redirect(url_for('personal_area_customer'))
-                    elif user.role == 1:
-                        return redirect(url_for('personal_area_freelancer'))
+                    if user.role == СUSTOMER:
+                        return redirect(url_for('customer', user_id=user_id))
+                    elif user.role == FREELANCER:
+                        return redirect(url_for('freelancer', user_id=user_id))
                     else:
                         flash('Неправильное имя или пароль')
                         return render_template('login.html', title=title, form=form)
@@ -100,77 +107,184 @@ def create_app():
         logout_user()
         flash('Вы успешно вышли')
         return redirect(url_for('index'))
+
+    @app.route('/customer/<int:user_id>/', methods=['GET', 'POST'])
+    def customer(user_id):
+        title = 'Все созданные заказы (статус created)'
+        form = ChoiceTaskForm()
+        tasks = Task.query.filter(Task.customer == user_id, Task.status == 'created').all()
+        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
+        form_create_task = SubmitForCreateTaskForm()
+        form_logout = LogoutForm()
+
+        if request.method == 'POST':
+            if form_logout.validate_on_submit():
+                return redirect(url_for('logout'))
+
+            if form_create_task.validate_on_submit():
+                return redirect(url_for('create_task'))
+
+            if form.validate_on_submit():
+                task_id = form.tasks.data
+                return redirect(url_for('task', task_id=task_id))
+
+        return render_template(
+            'customer.html', title=title, form=form, form_logout=form_logout,
+             form_create_task=form_create_task, user_id=user_id
+             )
     
-    @app.route('/create_task')
-    def create_task():
-        title = 'Создание заказа'
-        task_form = TaskForm()
-        return render_template('create_task.html', title=title, form=task_form)
+    @app.route('/customer/<int:user_id>/published/', methods=['GET', 'POST'])
+    def published(user_id):
+        title = 'Все опубликованные заказы (статус published)'
+        form = ChoiceTaskForm()
+        tasks = Task.query.filter(Task.customer == user_id, Task.status == 'published').all()
+        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
+        form_create_task = SubmitForCreateTaskForm()
+        form_logout = LogoutForm()
 
-    @app.route('/process_create_task', methods=['POST'])
-    def process_create_task():
-        title = 'Создание заказа'
-        task_form = TaskForm()
-        status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
-        tag = Tag.query.filter(Tag.tag == 'Разведение ежей').one()
-        freelancer = UserRole.query.filter(UserRole.role == 'freelancer').one()
-        customer = UserRole.query.filter(UserRole.role == 'customer').one()
+        if request.method == 'POST':
+            if form_logout.validate_on_submit():
+                return redirect(url_for('logout'))
 
-        if task_form.validate_on_submit():
-            task = Task(
-                task_name=task_form.task_name.data, 
-                description=task_form.description.data,
-                price=task_form.price.data,
-                deadline=task_form.deadline.data, 
-                status=status.id, 
-                tag=tag.id, 
-                freelancer=freelancer.id, 
-                customer=customer.id
+            if form_create_task.validate_on_submit():
+                return redirect(url_for('create_task'))
+
+            if form.validate_on_submit():
+                task_id = form.tasks.data
+                return redirect(url_for('task', task_id=task_id))
+
+        return render_template(
+            'published.html', title=title, form=form, form_logout=form_logout,
+             form_create_task=form_create_task, user_id=user_id
+             )
+
+    @app.route('/customer/<int:user_id>/freelancer_detected/', methods=['GET', 'POST'])
+    def freelanser_detected(user_id):
+        title = 'Все заказы, на которые откликнулись'
+        form = ChoiceTaskForm()
+        tasks = Task.query.filter(Task.customer == user_id, Task.status == 'freelancer_detected').all()
+        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
+        form_create_task = SubmitForCreateTaskForm()
+        form_logout = LogoutForm()
+        
+        if request.method == 'POST':
+            if form_logout.validate_on_submit():
+                return redirect(url_for('logout'))
+
+            if form_create_task.validate_on_submit():
+                return redirect(url_for('create_task'))
+
+            if form.validate_on_submit():
+                task_id = form.tasks.data
+                return redirect(url_for('task_in_work', task_id=task_id))
+        
+        return render_template('freelancer_detected.html', title=title, form=form, user_id=user_id)
+
+    @app.route('/customer/<int:user_id>/in_work/', methods=['GET', 'POST'])
+    def in_work(user_id):
+        title = 'Все заказы в работе'
+        form = ChoiceTaskForm()
+        tasks = Task.query.filter(Task.customer == user_id, Task.status == 'in_work').all()
+        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
+        form_create_task = SubmitForCreateTaskForm()
+        form_logout = LogoutForm()
+        
+        if request.method == 'POST':
+            if form_logout.validate_on_submit():
+                return redirect(url_for('logout'))
+
+            if form_create_task.validate_on_submit():
+                return redirect(url_for('create_task'))
+
+            if form.validate_on_submit():
+                task_id = form.tasks.data
+                return redirect(url_for('task_in_work', task_id=task_id))
+        
+        return render_template('in_work.html', title=title, form=form, user_id=user_id)
+    
+    @app.route('/customer/<int:user_id>/task/<int:task_id>/', methods=['GET', 'POST'])
+    def task(task_id):
+        title = 'Информация по заказу (здесь мы можем менять с created на published)'
+        form = ChangeTaskStatusForm()
+        form.status.choices = [(status.id, status.status) for status in TaskStatus.query.all()[:2]]
+        form_logout = LogoutForm()
+
+        if request.method == 'POST':
+            if form_logout.validate_on_submit():
+                return redirect(url_for('logout'))
+
+            if form.validate_on_submit():
+                status_id = form.status.data
+                task = Task.query.get(task_id)
+                task.status = status_id
+                db.session.commit()
+                flash(f"Статус заказа изменён на {status_id}")
+                return render_template(
+                    'customer_task.html', title=title, form=form,
+                    form_logout=form_logout, task_id=task_id
+                    )
+
+        return render_template(
+            'customer_task.html', title=title, form=form,
+            form_logout=form_logout, task_id=task_id
             )
-            db.session.add(task)
-            db.session.commit()
-            
-            flash('Вы успешно создали заказ!')
-            return redirect(url_for('personal_area_customer'))
 
-        flash('Введите все данные!')
-        return render_template('create_task.html', title=title, form=task_form)
-
-    @app.route('/personal_area_customer')
-    def personal_area_customer():
-        title = 'Все заказы'
-        tasks = Task.query.all()
-        form = ChoiseForm()
-        form.status.choices = [g.status for g in TaskStatus.query.all()[:2]]
+    @app.route('/customer/<int:user_id>/task_in_work/<int:task_id>/', methods=['GET', 'POST'])
+    def task_in_work(task_id):
+        title = 'Все откликнувшиеся на заказ'
+        form = ChoiceFreelancerForm()
+        task = Task.query.get(task_id)
+        freelancers = task.freelancers_who_responded.all()
+        form.freelancers.choices = [(user.id, user.user_name) for user in freelancers]
         form_logout = LogoutForm()
 
-        return render_template('personal_area_customer.html', title=title, tasks=tasks, form=form, form_logout=form_logout)
+        if request.method == 'POST':
+            if form_logout.validate_on_submit():
+                return redirect(url_for('logout'))
 
-    @app.route('/update_status/<int:task_id>', methods=['POST'])
-    def update_status(task_id):
-        form = ChoiseForm()
-        form.status.choices = [g.status for g in TaskStatus.query.all()[:2]]
-        form_logout = LogoutForm()
+            if form.validate_on_submit():
+                task = Task.query.get(task_id)
+                status = TaskStatus.query.filter(TaskStatus.status == 'in_work').one()
+                task.status = status.id
+                task.freelancer = form.freelancers.data
+                db.session.commit()
+                flash(f"Статус заказа изменён на {status}")
+                return redirect(url_for('all_task_in_work'))
 
-        if form_logout.validate_on_submit():
-            return redirect(url_for('logout'))
+        return render_template('task_in_work.html', title=title, form=form, task_id=task_id)
 
-        if form.validate_on_submit():
-            status = form.status.data
-            task = Task.query.get(task_id)
-            task_status = TaskStatus.query.filter(TaskStatus.status == status).one()
-            task.status = task_status.id
-            db.session.commit()
-            flash(f"Статус заказа изменён на {status}")
-            return redirect(url_for('personal_area_customer'))
+    @app.route('/customer/<int:user_id>/create_task/', methods=['GET', 'POST'])
+    def create_task(user_id):
+        title = 'Создание заказа'
+        form = CreateTaskForm()
+        status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
+        customer = UserRole.query.filter(UserRole.role == user_id).one()
 
-    @app.route('/personal_area_freelancer/<int:user_id>', methods=['GET', 'POST'])
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                task = Task(
+                    task_name=form.task_name.data,
+                    description=form.description.data,
+                    price=form.price.data,
+                    deadline=form.deadline.data,
+                    status=status.id,
+                    customer=customer.id
+                )
+                db.session.add(task)
+                db.session.commit()
+
+                flash('Вы успешно создали заказ!')
+                return redirect(url_for('customer', user_id=user_id))
+
+        return render_template('create_task.html', title=title, form=form, user_id=user_id)
+
+    @app.route('/freelancer/<int:user_id>/', methods=['GET', 'POST'])
     def personal_area_freelancer(user_id):
-        title = 'Все заказы'
-        form = FreelancerForm()
-        form.tasks.choices = [task.id for task in Task.query.filter(Task.status.in_([2,3])).all()]
+        title = 'Все актуальные заказы'
+        form = ChoiceTaskForm()
+        tasks = Task.query.filter(Task.status.in_([2,3])).all()
+        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
         form_logout = LogoutForm()
-
 
         if request.method == 'POST':
             if form_logout.validate_on_submit():
@@ -183,42 +297,19 @@ def create_app():
                 status = TaskStatus.query.filter(TaskStatus.status == 'freelancers_detected').one()
                 task.status = status.id
                 db.session.commit()
+
                 flash(f"Статус заказа изменён на {status}")
+                return render_template(
+                    'freelancer.html', title=title, form=form,
+                    form_logout=form_logout, user_id=user_id
+                    )
 
-        return render_template('personal_area_freelancer.html', title=title, form=form, form_logout=form_logout)
+        return render_template('freelancer.html', title=title, form=form, form_logout=form_logout, user_id=user_id)
 
-    @app.route('/personal_area_customer_in_work/<int:customer_id>', methods=['GET', 'POST'])
-    def personal_area_customer_in_work(customer_id):
-        title = 'Все заказы'
-        form = InWorkForm()
-        tasks = Task.query.filter(Task.customer == customer_id, Task.status == 3).all()
-        form.tasks.choices = [task.id for task in tasks]
-        
-        if request.method == 'POST':
-            if form.validate_on_submit():
-                task_id = form.tasks.data
-                return redirect(url_for('personal_area_customer_in_work_two', task_id=task_id))
-        
-        return render_template('in_work.html', title=title, form=form)
+    
+    
 
-    @app.route('/personal_area_customer_in_work_two/<int:task_id>', methods=['GET', 'POST'])
-    def personal_area_customer_in_work_two(task_id):
-        title = 'Все откликнувшиеся'
-        form = InWorkFormTwo()
-        task = Task.query.get(task_id)
-        freelancers = task.freelancers_who_responded.all()
-        
-        form.freelancers.choices = [user.id for user in freelancers]
-
-        if form.validate_on_submit():
-            task = Task.query.get(task_id)
-            status = TaskStatus.query.filter(TaskStatus.status == 'in_work').one()
-            task.status = status.id
-            task.freelancer = form.freelancers.data
-            db.session.commit()
-            flash(f"Статус заказа изменён на {status}")
-        
-        return render_template('in_work_two.html', title=title, form=form)
+    
 
     @app.route('/change_task_status_from_in_work', methods=['GET', 'POST'])
     def change_task_status_from_in_work():

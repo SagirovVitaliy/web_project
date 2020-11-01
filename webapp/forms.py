@@ -8,10 +8,6 @@ class IndexForm(FlaskForm):
     submit_for_signup = SubmitField('Зарегистрироваться')
 
 
-class LogoutForm(FlaskForm):
-    submit = SubmitField('Выйти')
-
-
 class RegistrationForm(FlaskForm):
     username = StringField('Введите имя пользователя', validators=[DataRequired()])
     email = StringField('Введите Email', validators=[DataRequired()])
@@ -29,40 +25,42 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Войти')
 
 
-class TaskForm(FlaskForm):
+class LogoutForm(FlaskForm):
+    submit = SubmitField('Выйти')
+
+
+class ChoiceTaskForm(FlaskForm):
+    tasks = SelectField('Список заказов', choices=[])
+    submit = SubmitField('Выбрать заказ')
+
+
+class SubmitForCreateTaskForm(FlaskForm):
+    submit = SubmitField('Создать заказ')
+
+
+class ChangeTaskStatusForm1(FlaskForm):
+    status = SelectField('Выбрать статус', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Сменить статус')
+
+
+class CreateTaskForm(FlaskForm):
     task_name = StringField('Название проекта', validators=[DataRequired()])
     description = TextAreaField('Описание', validators=[DataRequired()])
     price = IntegerField('Цена', validators=[DataRequired()])
-    deadline = DateField('Дата завершения проекта', format='%d.%m.%Y')
+    deadline = DateField('Дата завершения проекта', format='%d.%m.%Y', validators=[DataRequired()])
     submit = SubmitField('Создать проект')
 
 
-class ChoiseForm(FlaskForm):
+class TaskStatusForm(FlaskForm):
     status = SelectField('Выбрать статус', choices=[])
     submit = SubmitField('Сменить статус')
 
- 
-class FreelancerForm(FlaskForm):
-    tasks = SelectField('Выбрать заказ', choices=[])
-    submit = SubmitField('Отликнутся')
 
-
-class InWorkForm(FlaskForm):
-    tasks = SelectField('Выбрать заказ', choices=[])
-    submit = SubmitField('Выбрать')
-
-
-class InWorkFormTwo(FlaskForm):
+class ChoiceFreelancerForm(FlaskForm):
     freelancers = SelectField('Выбрать фрилансера', choices=[])
     submit = SubmitField('Выбрать')
 
 
-class ChangeTaskStatusForm(FlaskForm):
-    task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
-    status = SelectField('Новый статус', choices=[], validators=[DataRequired()])
-    submit = SubmitField('Сменить статус')
-    
-    
 class ChangeTaskStatusForm(FlaskForm):
     task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
     status = SelectField('Новый статус', choices=[], validators=[DataRequired()])
