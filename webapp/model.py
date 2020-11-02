@@ -44,7 +44,7 @@ class Phone(db.Model):
     phone = db.Column(db.Integer, unique=True)
     
     def __repr__(self):
-        return prettify(TaskForm
+        return prettify(
             class_label='Phone',
             prop_line_list=[
                 f'id:{self.id}',
@@ -114,7 +114,7 @@ class User(db.Model, UserMixin):
             class_label='User',
             prop_line_list=[
                 f'id:{self.id}',
-                f'username:{self.username}',
+                f'user_name:{self.user_name}',
                 f'role:{self.role}',
                 f'email:{self.email}',
                 f'phone:{self.phone}',

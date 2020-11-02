@@ -9,7 +9,7 @@ class IndexForm(FlaskForm):
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Введите имя пользователя', validators=[DataRequired()])
+    user_name = StringField('Введите имя пользователя', validators=[DataRequired()])
     email = StringField('Введите Email', validators=[DataRequired()])
     phone = IntegerField('Введите телефон')
     role = SelectField('Выберите роль', choices=[])
@@ -20,7 +20,7 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    username = StringField('Имя пользователя', validators=[DataRequired()])
+    user_name = StringField('Имя пользователя', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     submit = SubmitField('Войти')
 
@@ -49,6 +49,18 @@ class CreateTaskForm(FlaskForm):
     price = IntegerField('Цена', validators=[DataRequired()])
     deadline = DateField('Дата завершения проекта', format='%d.%m.%Y', validators=[DataRequired()])
     submit = SubmitField('Создать проект')
+
+
+class PublishedForm(FlaskForm):
+    submit = SubmitField('Опубликованные')
+
+
+class FreelancerDetectedForm(FlaskForm):
+    submit = SubmitField('Активные')
+
+
+class InWorkForm(FlaskForm):
+    submit = SubmitField('В работе')
 
 
 class TaskStatusForm(FlaskForm):

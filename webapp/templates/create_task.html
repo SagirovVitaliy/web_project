@@ -21,7 +21,7 @@
                     </div>
                   {% endif %}
                 {% endwith %}
-                  <form action="{{url_for( 'process_create_task' )}}" method="POST">
+                  <form action="{{url_for( 'create_task', user_id=user_id )}}" method="POST">
                     {{ form.hidden_tag() }}
                     <div class="form-group">
                       {{ form.task_name.label }}</br>

@@ -4,12 +4,14 @@ from flask_login import LoginManager, login_user, logout_user, current_user, log
 
 from webapp.model import db, Email, Phone, Task, TaskStatus, Tag, User, UserRole, freelancers_who_responded
 from webapp.forms import (
-    IndexForm, RegistrationForm, LoginForm, LogoutForm, ChoiceTaskForm, ChangeTaskStatusForm1, 
-    SubmitForCreateTaskForm, CreateTaskForm, ChoiceFreelancerForm, ChangeTaskStatusForm
+    IndexForm, RegistrationForm, LoginForm, LogoutForm, ChoiceTaskForm, PublishedForm,
+    FreelancerDetectedForm, InWorkForm, ChangeTaskStatusForm1, SubmitForCreateTaskForm,
+    CreateTaskForm, ChoiceFreelancerForm, ChangeTaskStatusForm
     )
 
 
-ROLE = {'FREELANCER': 1, 'CUSTOMER': 2}
+FREELANCER =1
+CUSTOMER = 2
 
 
 def create_app():
@@ -44,15 +46,15 @@ def create_app():
         return render_template('index.html', title=title, form=form)
 
     @app.route('/registration', methods=['GET', 'POST'])
-    def user_registration():
+    def registration():
         title = 'Регистрация пользователя'
         form = RegistrationForm()
         form.role.choices = [(role.id, role.role) for role in UserRole.query.all()]
 
         if request.method == 'POST':
             if form.validate_on_submit():
-                username = form.username.data
-                if User.query.filter(User.username == username).count():
+                user_name = form.user_name.data
+                if User.query.filter(User.user_name == user_name).count():
                     flash('Пользователь с таким именем уже существует')
                 
                 password1 = form.password1.data
@@ -62,7 +64,7 @@ def create_app():
                     flash('Пароли не совпадают')
 
                 user = User(
-                    username=username,
+                    user_name=user_name,
                     public_bio=form.public_bio.data,
                     role=form.role.data,
                     email=form.email.data,
@@ -92,7 +94,8 @@ def create_app():
                 if user and user.check_password(form.password.data):
                     login_user(user)
                     flash('Вы успешно зашли на сайт')
-                    if user.role == СUSTOMER:
+                    user_id = user.id
+                    if user.role == CUSTOMER:
                         return redirect(url_for('customer', user_id=user_id))
                     elif user.role == FREELANCER:
                         return redirect(url_for('freelancer', user_id=user_id))
@@ -112,25 +115,38 @@ def create_app():
     def customer(user_id):
         title = 'Все созданные заказы (статус created)'
         form = ChoiceTaskForm()
-        tasks = Task.query.filter(Task.customer == user_id, Task.status == 'created').all()
+        tasks = Task.query.filter(Task.customer == user_id, Task.status == 1).all()
         form.tasks.choices = [(task.id, task.task_name) for task in tasks]
         form_create_task = SubmitForCreateTaskForm()
         form_logout = LogoutForm()
+        form_published = PublishedForm()
+        form_freelancer_detected = FreelancerDetectedForm()
+        form_in_work = InWorkForm()
 
         if request.method == 'POST':
             if form_logout.validate_on_submit():
-                return redirect(url_for('logout'))
+                return redirect(url_for('logout', user_id=user_id))
 
-            if form_create_task.validate_on_submit():
-                return redirect(url_for('create_task'))
+            elif form_create_task.validate_on_submit():
+                return redirect(url_for('create_task', user_id=user_id))
 
-            if form.validate_on_submit():
+            elif form_published.validate_on_submit():
+                return redirect(url_for('published', user_id=user_id))
+
+            elif form_freelancer_detected.validate_on_submit():
+                return redirect(url_for('freelancer_detected', user_id=user_id))
+
+            elif form_in_work.validate_on_submit():
+                return redirect(url_for('in_work', user_id=user_id))
+
+            elif form.validate_on_submit():
                 task_id = form.tasks.data
                 return redirect(url_for('task', task_id=task_id))
 
         return render_template(
             'customer.html', title=title, form=form, form_logout=form_logout,
-             form_create_task=form_create_task, user_id=user_id
+             form_create_task=form_create_task, user_id=user_id, form_published=form_published,
+             form_freelancer_detected=form_freelancer_detected, form_in_work=form_in_work
              )
     
     @app.route('/customer/<int:user_id>/published/', methods=['GET', 'POST'])
@@ -258,7 +274,7 @@ def create_app():
         title = 'Создание заказа'
         form = CreateTaskForm()
         status = TaskStatus.query.filter(TaskStatus.status == 'created').one()
-        customer = UserRole.query.filter(UserRole.role == user_id).one()
+        customer = User.query.get(user_id)
 
         if request.method == 'POST':
             if form.validate_on_submit():
