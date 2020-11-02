@@ -2,43 +2,44 @@
 {% block page_main_content %}
     <div class="container">
         <h1>{{ title }}</h1>
-        <div class="row">
-            <div class="col-12">
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <div class="alert alert-warning" role="alert">
-                            {% for message in messages %}
-                                {{ message }}<br>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endwith %}
-                <form action="{{ form_url }}" method="POST">
-                    {{ form.hidden_tag() }}
-                    <div class="form-group">
-                        {{ form.task_id.label }}</br>
-                        {{ form.task_id() }}
-                        {% for error in form.task_id.errors %}
-                        <div class="alert alert-warning" role="alert">
-                            {{ error }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.status.label }}</br>
-                        {{ form.status() }}
-                        {% for error in form.status.errors %}
-                        <div class="alert alert-warning" role="alert">
-                            {{ error }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div>
-                        </br>
-                        {{ form.submit }}
-                    </div>
-                </form>
+        {% if feedback_message is string %}
+            <div class="alert alert-warning" role="alert">
+                {{ feedback_message }}
             </div>
-        </div>
+        {% endif %}
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-warning" role="alert">
+                    {% for message in messages %}
+                        {{ message }}<br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        <form action="{{ form_url }}" method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.task_id.label }}<br>
+                {{ form.task_id() }}
+                {% for error in form.task_id.errors %}
+                <div class="alert alert-warning" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.status.label }}<br>
+                {{ form.status() }}
+                {% for error in form.status.errors %}
+                <div class="alert alert-warning" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor %}
+            </div>
+            <div>
+                <br>
+                {{ form.submit }}
+            </div>
+        </form>
     </div>
 {% endblock page_main_content %}

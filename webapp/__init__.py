@@ -594,6 +594,9 @@ def create_app():
     @app.route('/view_task', methods=['GET', 'POST'])
     def view_task():
         '''Задать маршрут по которому можно просмотреть состояние Задачи.'''
+        class LocalError(Exception):
+            pass
+        
         title = 'Просматриваем состояние Задачи'
         form_url = url_for('view_task')
 
@@ -611,14 +614,16 @@ def create_app():
 
         elif request.method == 'POST':
 
-            if form.validate_on_submit():
+            try:
+                if not form.validate_on_submit():
+                    raise LocalError('Некорректно заполнены поля формы.')
 
                 current_task_id = request.form.get('task_id');
 
                 # Проверяем - все ли входные данные адекватны.
                 task = Task.query.get(current_task_id)
                 if task == None:
-                    raise Exception(f'Requested task(id:{current_task_id}) does not exist')
+                    raise LocalError(f'Задача не найдена. Попробуйте изменить критерий поиска и попровать снова.')
 
                 # На время тестов.
                 task_debug_info = (
@@ -627,18 +632,19 @@ def create_app():
                     .get(current_task_id)
                     .generate_level_2_debug_dictionary()
                 )
-
+            except LocalError as e:
+                return render_template(
+                    'view_task.form.html',
+                    title=title,
+                    form=form,
+                    form_url=form_url,
+                    feedback_message=e.args[0]
+                )
+            else:
                 return render_template(
                     'view_task.success.html',
                     title=title,
                     task=task_debug_info
                 )
-
-            return render_template(
-                'view_task.form.html',
-                title=title,
-                form=form,
-                form_url=form_url
-            )
 
     return app
