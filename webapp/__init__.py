@@ -497,6 +497,9 @@ def create_app():
         Отрезок негативного пути - Отцепляем от Задачи одного из предварительно
         Откликнувшихся Фрилансеров.
         '''
+        class LocalError(Exception):
+            pass
+
         title = 'Тестируем freelancer.dismiss_responded_freelancer_from_task'
         form_url = url_for('dismiss_responded_freelancer_from_task')
 
@@ -515,7 +518,9 @@ def create_app():
 
         elif request.method == 'POST':
 
-            if form.validate_on_submit():
+            try:
+                if not form.validate_on_submit():
+                    raise LocalError('Некорректно заполнены поля формы.')
 
                 current_task_id = request.form.get('task_id');
                 current_user_id = request.form.get('user_id');
@@ -528,21 +533,28 @@ def create_app():
 
                 task = Task.query.get(current_task_id)
                 if task == None:
-                    raise Exception(f'Requested task(id:{current_task_id}) does not exist')
+                    raise LocalError('Операция не может быть выполнена, потому что указанная в запросе Задача не существует.')
+
+                freelancer = User.query.filter(
+                    User.role != freelancer_role,
+                    User.id == current_user_id
+                ).first()
+                if freelancer != None:
+                    raise LocalError('Операция не может быть выполнена, потому что указанный в запросе пользователь не является Фрилансером.')
 
                 freelancer = User.query.filter(
                     User.role == freelancer_role,
                     User.id == current_user_id
                 ).first()
                 if freelancer == None:
-                    raise Exception(f'Requested freelancer(id:{current_user_id}) does not exist')
+                    raise LocalError('Операция не может быть выполнена, потому что указанный в запросе Фрилансер не существует.')
 
                 freelancer = task.freelancers_who_responded.filter(
                     User.role == freelancer_role,
                     User.id == current_user_id
                 ).first()
                 if freelancer == None:
-                    raise Exception(f'Requested freelancer(id:{current_user_id}) is not connected to requested task(id:{current_task_id}) as task.freelancers_who_responded')
+                    raise LocalError('Операция не может быть выполнена, потому что указанный в запросе Фрилансер не привязан к указанной Задаче как Предварительно Откликнувшийся Фрилансер.')
 
                 # На время тестов.
                 task_debug_info1 = (
@@ -576,20 +588,21 @@ def create_app():
                     .get(current_task_id)
                     .generate_level_2_debug_dictionary()
                 )
-
+            except LocalError as e:
+                return render_template(
+                    'dismiss_freelancer_from_task.form.html',
+                    title=title,
+                    form=form,
+                    form_url=form_url,
+                    feedback_message=e.args[0]
+                )
+            else:
                 return render_template(
                     'dismiss_freelancer_from_task.success.html',
                     title=title,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
                 )
-
-            return render_template(
-                'dismiss_freelancer_from_task.form.html',
-                title=title,
-                form=form,
-                form_url=form_url
-            )
 
     @app.route('/view_task', methods=['GET', 'POST'])
     def view_task():
@@ -623,7 +636,7 @@ def create_app():
                 # Проверяем - все ли входные данные адекватны.
                 task = Task.query.get(current_task_id)
                 if task == None:
-                    raise LocalError(f'Задача не найдена. Попробуйте изменить критерий поиска и попровать снова.')
+                    raise LocalError('Указанная в запросе Задача не существует.. Попробуйте изменить критерий поиска и попровать снова.')
 
                 # На время тестов.
                 task_debug_info = (
