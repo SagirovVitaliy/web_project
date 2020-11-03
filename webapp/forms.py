@@ -25,17 +25,9 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Войти')
 
 
-class LogoutForm(FlaskForm):
-    submit = SubmitField('Выйти')
-
-
 class ChoiceTaskForm(FlaskForm):
     tasks = SelectField('Список заказов', choices=[])
     submit = SubmitField('Выбрать заказ')
-
-
-class SubmitForCreateTaskForm(FlaskForm):
-    submit = SubmitField('Создать заказ')
 
 
 class ChangeTaskStatusForm1(FlaskForm):
@@ -51,16 +43,13 @@ class CreateTaskForm(FlaskForm):
     submit = SubmitField('Создать проект')
 
 
-class PublishedForm(FlaskForm):
-    submit = SubmitField('Опубликованные')
-
-
-class FreelancerDetectedForm(FlaskForm):
-    submit = SubmitField('Активные')
-
-
-class InWorkForm(FlaskForm):
-    submit = SubmitField('В работе')
+class ChangePageForm(FlaskForm):
+    create = SubmitField('Создать заказ')
+    created = SubmitField('Созданные')
+    published = SubmitField('Опубликованные')
+    freelancers_detected = SubmitField('Активные')
+    in_work = SubmitField('В работе')
+    logout = SubmitField('Выйти')
 
 
 class TaskStatusForm(FlaskForm):

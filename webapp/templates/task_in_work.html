@@ -14,7 +14,7 @@
             {% endwith %}
           </div>
           <div class="col-4">
-            <form action="{{url_for('customer', user_id=user_id )}}" method="POST">
+            <form action="{{url_for('task_in_work', user_id=user_id, task_id=task_id )}}" method="POST">
                 {{ form.hidden_tag() }}
                 {{ form_change_page.hidden_tag() }}
                 <div>
@@ -35,10 +35,10 @@
 
                     <div>
                         <br>
-                        {{ form.tasks.label }}
+                        {{ form.freelancers.label }}
                         <br>
-                        {{ form.tasks }}
-                        {% for error in form.tasks.errors %}
+                        {{ form.freelancers }}
+                        {% for error in form.freelancers.errors %}
                         <span style="color: red;">[{{ error }}]</span>
                         {% endfor %}
 
