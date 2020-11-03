@@ -7,8 +7,9 @@ from webapp.model import (
     )
 from webapp.forms import (
     TaskForm, ChoiseForm, FreelancerForm, InWorkForm, InWorkFormTwo,
-    ChangeTaskStatusForm, DismissFrilancerFromTaskForm, ViewTaskForm
+    ChangeTaskStatusForm, DismissFreelancerFromTaskForm, ViewTaskForm
     )
+from webapp.errors import LocalError
 
 
 def create_app():
@@ -183,12 +184,14 @@ def create_app():
 
         elif request.method == 'POST':
 
-            if form.validate_on_submit():
+            try:
+                if not form.validate_on_submit():
+                    raise LocalError('Некорректно заполнены поля формы.')
 
                 current_task_id = request.form.get('task_id');
                 new_status_id = request.form.get('status');
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info1 = (
                     Task
                     .query
@@ -199,32 +202,37 @@ def create_app():
                 # Проверяем - все ли входные данные адекватны.
                 task = Task.query.get(current_task_id)
                 if task == None:
-                    raise Exception(f'Requested task(id:{current_task_id}) does not exist')
+                    raise LocalError('Операция не может быть выполнена, потому что указанная в запросе Задача не существует.')
 
                 task.status = new_status_id
                 db.session.commit()
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info2 = (
                     Task
                     .query
                     .get(current_task_id)
                     .generate_level_2_debug_dictionary()
                 )
-
+            except LocalError as e:
+                db.session.rollback()
+                return render_template(
+                    'change_task_status.form.html',
+                    title=title,
+                    form=form,
+                    form_url=form_url,
+                    feedback_message=e.args[0]
+                )
+            except:
+                db.session.rollback()
+                raise
+            else:
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
                 )
-
-            return render_template(
-                'change_task_status.form.html',
-                title=title,
-                form=form,
-                form_url=form_url
-            )
 
     @app.route('/change_task_status_from_in_review', methods=['GET', 'POST'])
     def change_task_status_from_in_review():
@@ -256,13 +264,15 @@ def create_app():
             )
 
         elif request.method == 'POST':
-            
-            if form.validate_on_submit():
+
+            try:
+                if not form.validate_on_submit():
+                    raise LocalError('Некорректно заполнены поля формы.')
 
                 current_task_id = request.form.get('task_id');
                 new_status_id = request.form.get('status');
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info1 = (
                     Task
                     .query
@@ -273,32 +283,37 @@ def create_app():
                 # Проверяем - все ли входные данные адекватны.
                 task = Task.query.get(current_task_id)
                 if task == None:
-                    raise Exception(f'Requested task(id:{current_task_id}) does not exist')
+                    raise LocalError('Операция не может быть выполнена, потому что указанная в запросе Задача не существует.')
 
                 task.status = new_status_id
                 db.session.commit()
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info2 = (
                     Task
                     .query
                     .get(current_task_id)
                     .generate_level_2_debug_dictionary()
                 )
-
+            except LocalError as e:
+                db.session.rollback()
+                return render_template(
+                    'change_task_status.form.html',
+                    title=title,
+                    form=form,
+                    form_url=form_url,
+                    feedback_message=e.args[0]
+                )
+            except:
+                db.session.rollback()
+                raise
+            else:
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
                 )
-
-            return render_template(
-                'change_task_status.form.html',
-                title=title,
-                form=form,
-                form_url=form_url
-            )
 
     @app.route('/cancel_task', methods=['GET', 'POST'])
     def cancel_task():
@@ -330,14 +345,16 @@ def create_app():
 
         elif request.method == 'POST':
 
-            if form.validate_on_submit():
+            try:
+                if not form.validate_on_submit():
+                    raise LocalError('Некорректно заполнены поля формы.')
 
                 current_task_id = request.form.get('task_id');
                 new_status_id = request.form.get('status');
 
                 freelancer_role = get_user_role_id(code='freelancer')
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info1 = (
                     Task
                     .query
@@ -367,27 +384,32 @@ def create_app():
                 )
                 db.session.commit()
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info2 = (
                     Task
                     .query
                     .get(current_task_id)
                     .generate_level_2_debug_dictionary()
                 )
-
+            except LocalError as e:
+                db.session.rollback()
+                return render_template(
+                    'change_task_status.form.html',
+                    title=title,
+                    form=form,
+                    form_url=form_url,
+                    feedback_message=e.args[0]
+                )
+            except:
+                db.session.rollback()
+                raise
+            else:
                 return render_template(
                     'change_task_status.success.html',
                     title=title,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
                 )
-
-            return render_template(
-                'change_task_status.form.html',
-                title=title,
-                form=form,
-                form_url=form_url
-            )
 
     @app.route('/dismiss_confirmed_freelancer_from_task', methods=['GET', 'POST'])
     def dismiss_confirmed_freelancer_from_task():
@@ -402,7 +424,7 @@ def create_app():
         title = 'Тестируем freelancer.dismiss_confirmed_freelancer_from_task'
         form_url = url_for('dismiss_confirmed_freelancer_from_task')
 
-        form = DismissFrilancerFromTaskForm()
+        form = DismissFreelancerFromTaskForm()
         form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
         form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
 
@@ -417,7 +439,9 @@ def create_app():
 
         elif request.method == 'POST':
 
-            if form.validate_on_submit():
+            try:
+                if not form.validate_on_submit():
+                    raise LocalError('Некорректно заполнены поля формы.')
 
                 current_task_id = request.form.get('task_id');
                 current_user_id = request.form.get('user_id');
@@ -431,19 +455,19 @@ def create_app():
 
                 task = Task.query.get(current_task_id)
                 if task == None:
-                    raise Exception('Requested task does not exist')
+                    raise LocalError('Операция не может быть выполнена, потому что указанная в запросе Задача не существует.')
 
                 freelancer = User.query.filter(
-                    User.id == current_user_id,
-                    User.role == freelancer_role
+                    User.id == current_user_id
                 ).first()
                 if freelancer == None:
-                    raise Exception('Requested freelancer does not exist')
-
+                    raise LocalError('Операция не может быть выполнена, потому что указанный в запросе Фрилансер не существует.')
+                if freelancer.role != freelancer_role:
+                    raise LocalError('Операция не может быть выполнена, потому что указанный в запросе пользователь не является Фрилансером.')
                 if task.freelancer != freelancer.id:
-                    raise Exception('Requested freelancer is not connected to requested task as task.freelancer')
+                    raise LocalError('Операция не может быть выполнена, потому что указанный в запросе Фрилансер не привязан к указанной Задаче как Предварительно Откликнувшийся Фрилансер.')
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info1 = (
                     Task
                     .query
@@ -465,27 +489,32 @@ def create_app():
                     task.status = status_created
                 db.session.commit()
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info2 = (
                     Task
                     .query
                     .get(current_task_id)
                     .generate_level_2_debug_dictionary()
                 )
-
+            except LocalError as e:
+                db.session.rollback()
+                return render_template(
+                    'dismiss_freelancer_from_task.form.html',
+                    title=title,
+                    form=form,
+                    form_url=form_url,
+                    feedback_message=e.args[0]
+                )
+            except:
+                db.session.rollback()
+                raise
+            else:
                 return render_template(
                     'dismiss_freelancer_from_task.success.html',
                     title=title,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
                 )
-
-            return render_template(
-                'dismiss_freelancer_from_task.form.html',
-                title=title,
-                form=form,
-                form_url=form_url
-            )
 
     @app.route('/dismiss_responded_freelancer_from_task', methods=['GET', 'POST'])
     def dismiss_responded_freelancer_from_task():
@@ -497,13 +526,10 @@ def create_app():
         Отрезок негативного пути - Отцепляем от Задачи одного из предварительно
         Откликнувшихся Фрилансеров.
         '''
-        class LocalError(Exception):
-            pass
-
         title = 'Тестируем freelancer.dismiss_responded_freelancer_from_task'
         form_url = url_for('dismiss_responded_freelancer_from_task')
 
-        form = DismissFrilancerFromTaskForm()
+        form = DismissFreelancerFromTaskForm()
         form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
         form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
 
@@ -536,27 +562,20 @@ def create_app():
                     raise LocalError('Операция не может быть выполнена, потому что указанная в запросе Задача не существует.')
 
                 freelancer = User.query.filter(
-                    User.role != freelancer_role,
-                    User.id == current_user_id
-                ).first()
-                if freelancer != None:
-                    raise LocalError('Операция не может быть выполнена, потому что указанный в запросе пользователь не является Фрилансером.')
-
-                freelancer = User.query.filter(
-                    User.role == freelancer_role,
                     User.id == current_user_id
                 ).first()
                 if freelancer == None:
                     raise LocalError('Операция не может быть выполнена, потому что указанный в запросе Фрилансер не существует.')
+                if freelancer.role != freelancer_role:
+                    raise LocalError('Операция не может быть выполнена, потому что указанный в запросе пользователь не является Фрилансером.')
 
                 freelancer = task.freelancers_who_responded.filter(
-                    User.role == freelancer_role,
                     User.id == current_user_id
                 ).first()
                 if freelancer == None:
                     raise LocalError('Операция не может быть выполнена, потому что указанный в запросе Фрилансер не привязан к указанной Задаче как Предварительно Откликнувшийся Фрилансер.')
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info1 = (
                     Task
                     .query
@@ -581,7 +600,7 @@ def create_app():
                         task.status = status_created
                 db.session.commit()
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info2 = (
                     Task
                     .query
@@ -611,9 +630,6 @@ def create_app():
     @app.route('/view_task', methods=['GET', 'POST'])
     def view_task():
         '''Задать маршрут по которому можно просмотреть состояние Задачи.'''
-        class LocalError(Exception):
-            pass
-        
         title = 'Просматриваем состояние Задачи'
         form_url = url_for('view_task')
 
@@ -642,7 +658,7 @@ def create_app():
                 if task == None:
                     raise LocalError('Указанная в запросе Задача не существует.. Попробуйте изменить критерий поиска и попровать снова.')
 
-                # На время тестов.
+                # На время тестов собираем свежие снимки данных.
                 task_debug_info = (
                     Task
                     .query
