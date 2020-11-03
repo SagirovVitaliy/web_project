@@ -589,6 +589,7 @@ def create_app():
                     .generate_level_2_debug_dictionary()
                 )
             except LocalError as e:
+                db.session.rollback()
                 return render_template(
                     'dismiss_freelancer_from_task.form.html',
                     title=title,
@@ -596,6 +597,9 @@ def create_app():
                     form_url=form_url,
                     feedback_message=e.args[0]
                 )
+            except:
+                db.session.rollback()
+                raise
             else:
                 return render_template(
                     'dismiss_freelancer_from_task.success.html',
