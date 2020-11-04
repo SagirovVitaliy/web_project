@@ -17,10 +17,10 @@
     ],
     "user_role": [
         {
-            "role": "freelancer"
+            "role": "customer"
         },
         {
-            "role": "customer"
+            "role": "freelancer"
         }
     ],
     "user": [
@@ -45,24 +45,31 @@
     ],
     "task_status": [
         {
+            "id": 1,
             "status": "created"
         },
         {
+            "id": 2,
             "status": "published"
         },
         {
+            "id": 3,
             "status": "freelancers_detected"
         },
         {
+            "id": 4,
             "status": "in_work"
         },
         {
+            "id": 5,
             "status": "stopped"
         },
         {
+            "id": 6,
             "status": "in_review"
         },
         {
+            "id": 7,
             "status": "done"
         }
     ],

@@ -19,6 +19,17 @@ metadata = MetaData(
 )
 db = SQLAlchemy(metadata=metadata)
 
+CUSTOMER = 1
+FREELANCER = 2
+
+CREATED = 1
+PUBLISHED = 2
+FREELANCERS_DETECTED = 3
+IN_WORK = 4
+STOPPED = 5
+IN_REVIEW = 6
+DONE = 7
+
 
 def prettify(class_label, prop_line_list):
     props = ' '.join(prop_line_list)
