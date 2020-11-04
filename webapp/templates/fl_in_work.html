@@ -13,21 +13,20 @@
             </div>
           {% endif %}
         {% endwith %}
-        <form action="{{url_for('in_work', user_id=user_id )}}" method="POST">
+        <form action="{{url_for('fl_in_work', user_id=user_id )}}" method="POST">
           {{ form.hidden_tag() }}
           {{ form_change_page.hidden_tag() }}
           <div>
             {{ form.csrf_token }}
             {{ form_change_page.csrf_token }}
 
-            {{ form_change_page.created }}
+            {{ form_change_page.in_review }}
 
-            {{ form_change_page.published }}
-
-            {{ form_change_page.freelancers_detected }}
+            {{ form_change_page.actual }}
 
             {{ form_change_page.in_work }}
 
+            {{ form_change_page.logout }}
             <div>
               <br>
               {{ form.tasks.label }}
@@ -43,13 +42,10 @@
         </form>
       </div>
       <div class="col-4">
-        <form action="{{url_for('in_work', user_id=user_id )}}" method="POST">
+        <form action="{{url_for('fl_in_work', user_id=user_id )}}" method="POST">
           {{ form_change_page.hidden_tag() }}
-                
           <div>
             {{ form_change_page.csrf_token }}
-
-            {{ form_change_page.create }}
 
             {{ form_change_page.logout }}
           </div>

@@ -1,4 +1,5 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="ru">
   <head>
     <!-- Required meta tags -->
@@ -6,49 +7,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.3/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
 
     <title>{{ title }}</title>
   </head>
   <body>
-    <div class="container">
-    <h1>{{ title }}</h1>
-        <div class="row">
-
-          <div class="col-8">
-            {% with messages = get_flashed_messages() %}
-                  {% if messages %}
-                    <div class="alert alert-warning" role="alert">
-                        {% for message in messages %}
-                            {{ message }}<br>
-                        {% endfor %}
-                    </div>
-                  {% endif %}
-            {% endwith %}
-
-            {% for task in tasks %}
-              <h3>{{ task }}</h3>
-            {% endfor %}
-          </div>
- 
-          <div class="col-4">
-            <form action="{{url_for( 'update_status', task_id=6 )}}" method="POST">
-              {{ form.hidden_tag() }}
-              <div class="form-group">
-                {{ form.csrf_token }}
-                {{ form.status }}
-                {% for error in form.status.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-              </div>
-              <div>
-                </br>
-                {{ form.submit }}
-              </div>
-            </form>
+    <main>
+      {% block page_main_content %}
+        <div class="container">
+          <h1>{{ title }}</h1>
         </div>
-        </div>
-    </div>    
+      {% endblock page_main_content %}
+    </main>
+    <footer>
+      {% block page_footer_content %}
+      {% endblock page_footer_content %}
+    </footer>
 
     <!-- Optional JavaScript; choose one of the two! -->
 
