@@ -1,38 +1,39 @@
-{% extends "base.html" %}
-
-{% block content %}
-        <div class="row">
-
-          <div class="col-8">
-            {% with messages = get_flashed_messages() %}
-                  {% if messages %}
-                    <div class="alert alert-warning" role="alert">
-                        {% for message in messages %}
-                            {{ message }}<br>
-                        {% endfor %}
-                    </div>
-                  {% endif %}
-            {% endwith %}
+{% extends 'layouts/base.html' %}
+{% block page_main_content %}
+  <div class="container">
+    <h1>{{ title }}</h1>
+    <div class="row">
+      <div class="col-8">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-warning" role="alert">
+              {% for message in messages %}
+                {{ message }}<br>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+      </div>
+      <div class="col-4">
+        <form action="{{url_for( 'login')}}" method="POST">
+          {{ form.hidden_tag() }}
+          <div class="form-group">
           </div>
-          <div class="col-4">
-            <form action="{{url_for( 'login')}}" method="POST">
-              {{ form.hidden_tag() }}
-              <div class="form-group">
-              </div>
-              <div>
-                </br>
-                {{ form.csrf_token }}
+          <div>
+            <br>
+            {{ form.csrf_token }}
 
-                {{ form.user_name.label }}
-                {{ form.user_name }}
+            {{ form.user_name.label }}
+            {{ form.user_name }}
 
-                {{ form.password.label }}
-                {{ form.password }}
+            {{ form.password.label }}
+            {{ form.password }}
 
-                {{ form.submit.label }}
-                {{ form.submit }}
-              </div>
-            </form>
+            {{ form.submit.label }}
+            {{ form.submit }}
           </div>
-        </div>
-{% endblock %}
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock page_main_content %}

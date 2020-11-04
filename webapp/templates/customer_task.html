@@ -1,52 +1,53 @@
-{% extends "base.html" %}
+{% extends 'layouts/base.html' %}
+{% block page_main_content %}
+  <div class="container">
+    <h1>{{ title }}</h1>
+    <div class="row">
+      <div class="col-4">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-warning" role="alert">
+              {% for message in messages %}
+                {{ message }}<br>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+      </div>
+      <div class="col-4">
+        <form action="{{url_for('task', user_id=user_id, task_id=task_id)}}" method="POST">
+          {{ form.hidden_tag() }}
+          {{ form_change_page.hidden_tag() }}
+          <div>
+            {{ form.csrf_token }}
+            {{ form_change_page.csrf_token }}
 
-{% block content %}
-        <div class="row">
-          <div class="col-4">
-            {% with messages = get_flashed_messages() %}
-                  {% if messages %}
-                    <div class="alert alert-warning" role="alert">
-                        {% for message in messages %}
-                            {{ message }}<br>
-                        {% endfor %}
-                    </div>
-                  {% endif %}
-            {% endwith %}
+            {{ form_change_page.create }}
+
+            {{ form_change_page.created }}
+
+            {{ form_change_page.published }}
+
+            {{ form_change_page.freelancers_detected }}
+
+            {{ form_change_page.in_work }}
+
+            {{ form_change_page.logout }}
+
+            <div>
+              <br>
+              {{ form.status.label }}
+              <br>
+              {{ form.status }}
+              {% for error in form.status.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
+
+              {{ form.submit }}
+            </div>
           </div>
-          <div class="col-4">
-            <form action="{{url_for('task', user_id=user_id, task_id=task_id)}}" method="POST">
-                {{ form.hidden_tag() }}
-                {{ form_change_page.hidden_tag() }}
-                <div>
-                    {{ form.csrf_token }}
-                    {{ form_change_page.csrf_token }}
-
-                    {{ form_change_page.create }}
-
-                    {{ form_change_page.created }}
-
-                    {{ form_change_page.published }}
-
-                    {{ form_change_page.freelancers_detected }}
-
-                    {{ form_change_page.in_work }}
-
-                    {{ form_change_page.logout }}
-
-                    <div>
-                        <br>
-                        {{ form.status.label }}
-                        <br>
-                        {{ form.status }}
-                        {% for error in form.status.errors %}
-                        <span style="color: red;">[{{ error }}]</span>
-                        {% endfor %}
-
-                        {{ form.submit }}
-                    </div>
-                
-                </div>
-            </form>
-          </div>
-        </div>
-{% endblock %}
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock page_main_content %}
