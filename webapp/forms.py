@@ -50,6 +50,8 @@ class ChangePageForm(FlaskForm):
     freelancers_detected = SubmitField('Активные')
     in_work = SubmitField('В работе')
     logout = SubmitField('Выйти')
+    in_review = SubmitField('Сдать проект')
+    actual = SubmitField('Актуальные заказы')
 
 
 class TaskStatusForm(FlaskForm):
