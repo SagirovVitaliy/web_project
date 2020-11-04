@@ -14,7 +14,7 @@
             {% endwith %}
           </div>
           <div class="col-4">
-            <form action="{{url_for('in_work', user_id=user_id )}}" method="POST">
+            <form action="{{url_for('published', user_id=user_id )}}" method="POST">
                 {{ form.hidden_tag() }}
                 {{ form_change_page.hidden_tag() }}
                 <div>

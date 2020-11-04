@@ -12,36 +12,11 @@
   </head>
   <body>
     <div class="container">
-    <h1>{{ title }}</h1>
-        <div class="row">
+        <h1>{{ title }}</h1>
 
-          <div class="col-8">
-            {% with messages = get_flashed_messages() %}
-                  {% if messages %}
-                    <div class="alert alert-warning" role="alert">
-                        {% for message in messages %}
-                            {{ message }}<br>
-                        {% endfor %}
-                    </div>
-                  {% endif %}
-            {% endwith %}
+        {% block content %}{% endblock %}
 
- 
-          <div class="col-4">
-            <form action="{{url_for( 'personal_area_customer_in_work_two', task_id=6)}}" method="POST">
-              {{ form.hidden_tag() }}
-              <div class="form-group">
-              </div>
-              <div>
-                </br>
-                {{ form.csrf_token }}
-                {{ form.freelancers }}
-                {{ form.submit }}
-              </div>
-            </form>
-        </div>
-        </div>
-    </div>    
+    </div>
 
     <!-- Optional JavaScript; choose one of the two! -->
 

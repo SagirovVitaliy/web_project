@@ -25,24 +25,22 @@
                     </div>
                   {% endif %}
             {% endwith %}
-
-            {% for task in tasks %}
-              <h3>{{ task }}</h3>
-            {% endfor %}
-          </div>
- 
           <div class="col-4">
-            <form action="{{url_for( 'update_status', task_id=6 )}}" method="POST">
+            <form action="{{url_for( 'login')}}" method="POST">
               {{ form.hidden_tag() }}
               <div class="form-group">
-                {{ form.csrf_token }}
-                {{ form.status }}
-                {% for error in form.status.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
               </div>
               <div>
                 </br>
+                {{ form.csrf_token }}
+
+                {{ form.user_name.label }}
+                {{ form.user_name }}
+
+                {{ form.password.label }}
+                {{ form.password }}
+
+                {{ form.submit.label }}
                 {{ form.submit }}
               </div>
             </form>

@@ -1,4 +1,6 @@
+from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Задаём конвенции того как называть Constraints. Подробней зачем это нужно
 # можно посмотреть тут:
@@ -53,7 +55,7 @@ class Phone(db.Model):
 
 class UserRole(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    role = db.Column(db.String(), nullable=False)
+    role = db.Column(db.String())
     
     def __repr__(self):
         return prettify(
@@ -64,14 +66,16 @@ class UserRole(db.Model):
             ]
         )
 
+
 freelancers_who_responded = db.Table('freelancers_who_responded',
     db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
     db.Column('task_id', db.Integer(), db.ForeignKey('task.id'))
 )
 
-class User(db.Model):
+
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
+    user_name = db.Column(db.String(64), index=True, unique=True)
     password = db.Column(db.String(128))
     public_bio = db.Column(db.String())
 
@@ -101,12 +105,18 @@ class User(db.Model):
         backref=db.backref('freelancers_who_responded', lazy='dynamic')
         )
 
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
     def __repr__(self):
         return prettify(
             class_label='User',
             prop_line_list=[
                 f'id:{self.id}',
-                f'username:{self.username}',
+                f'user_name:{self.user_name}',
                 f'role:{self.role}',
                 f'email:{self.email}',
                 f'phone:{self.phone}',
