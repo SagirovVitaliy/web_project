@@ -55,12 +55,12 @@ class ChangePageForm(FlaskForm):
 
 
 class TaskStatusForm(FlaskForm):
-    status = SelectField('Выбрать статус', choices=[])
+    status = SelectField('Выбрать статус', choices=[], validators=[DataRequired()])
     submit = SubmitField('Сменить статус')
 
 
 class ChoiceFreelancerForm(FlaskForm):
-    freelancers = SelectField('Выбрать фрилансера', choices=[])
+    freelancers = SelectField('Выбрать фрилансера', choices=[], validators=[DataRequired()])
     submit = SubmitField('Выбрать')
 
 

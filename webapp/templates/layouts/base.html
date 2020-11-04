@@ -1,4 +1,5 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="ru">
   <head>
     <!-- Required meta tags -->
@@ -11,12 +12,17 @@
     <title>{{ title }}</title>
   </head>
   <body>
-    <div class="container">
-        <h1>{{ title }}</h1>
-
-        {% block content %}{% endblock %}
-
-    </div>
+    <main>
+      {% block page_main_content %}
+        <div class="container">
+          <h1>{{ title }}</h1>
+        </div>
+      {% endblock page_main_content %}
+    </main>
+    <footer>
+      {% block page_footer_content %}
+      {% endblock page_footer_content %}
+    </footer>
 
     <!-- Optional JavaScript; choose one of the two! -->
 
