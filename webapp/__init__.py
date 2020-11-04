@@ -93,7 +93,7 @@ def create_app():
             flash('Вы уже вошли')
             return redirect(url_for('index'))
 
-        title = 'login'
+        title = 'Вход'
         form = LoginForm()
 
         if request.method == 'POST':
@@ -183,7 +183,7 @@ def create_app():
 
             elif form.validate_on_submit():
                 task_id = form.tasks.data
-                return redirect(url_for('task', task_id=task_id))
+                return redirect(url_for('task', user_id=user_id, task_id=task_id))
 
         return render_template('published.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
 
