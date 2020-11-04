@@ -120,6 +120,7 @@ def create_app():
         return redirect(url_for('index'))
 
     @app.route('/customer/<int:user_id>/', methods=['GET', 'POST'])
+    @login_required
     def customer(user_id):
         title = 'Все созданные заказы (статус created)'
         form = ChoiceTaskForm()
@@ -154,6 +155,7 @@ def create_app():
         return render_template('customer.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
 
     @app.route('/customer/<int:user_id>/published/', methods=['GET', 'POST'])
+    @login_required
     def published(user_id):
         title = 'Все опубликованные заказы (статус published)'
         form = ChoiceTaskForm()
@@ -188,6 +190,7 @@ def create_app():
         return render_template('published.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
 
     @app.route('/customer/<int:user_id>/freelancers_detected/', methods=['GET', 'POST'])
+    @login_required
     def freelancers_detected(user_id):
         title = 'Все заказы, на которые откликнулись'
         form = ChoiceTaskForm()
@@ -222,6 +225,7 @@ def create_app():
         return render_template('freelancers_detected.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
 
     @app.route('/customer/<int:user_id>/in_work/', methods=['GET', 'POST'])
+    @login_required
     def in_work(user_id):
         title = 'Все заказы в работе'
         form = ChoiceTaskForm()
@@ -256,6 +260,7 @@ def create_app():
         return render_template('in_work.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
 
     @app.route('/customer/<int:user_id>/task/<int:task_id>/', methods=['GET', 'POST'])
+    @login_required
     def task(user_id, task_id):
         title = 'Информация по заказу (здесь мы можем менять с created на published)'
         form = ChangeTaskStatusForm1()
@@ -286,15 +291,13 @@ def create_app():
                 task = Task.query.get(task_id)
                 task.status = status_id
                 db.session.commit()
-
                 flash(f"Статус заказа изменён на {status_id}")
-                return render_template('customer_task.html', title=title, form=form,
-                form_change_page=form_change_page, task_id=task_id, user_id=user_id)
 
         return render_template('customer_task.html', title=title, form=form, form_change_page=form_change_page,
             task_id=task_id, user_id=user_id)
 
     @app.route('/customer/<int:user_id>/task_in_work/<int:task_id>/', methods=['GET', 'POST'])
+    @login_required
     def task_in_work(user_id, task_id):
         title = 'Все откликнувшиеся на заказ'
         form = ChoiceFreelancerForm()
@@ -329,13 +332,12 @@ def create_app():
                 task.status = status.id
                 task.freelancer = form.freelancers.data
                 db.session.commit()
-
                 flash(f"Статус заказа изменён на {status}")
-                return render_template('task_in_work.html', title=title, form=form, task_id=task_id, form_change_page=form_change_page, user_id=user_id)
 
         return render_template('task_in_work.html', title=title, form=form, task_id=task_id, form_change_page=form_change_page, user_id=user_id)
 
     @app.route('/customer/<int:user_id>/create_task/', methods=['GET', 'POST'])
+    @login_required
     def create_task(user_id):
         title = 'Создание заказа'
         form = CreateTaskForm()
@@ -361,6 +363,7 @@ def create_app():
         return render_template('create_task.html', title=title, form=form, user_id=user_id)
 
     @app.route('/freelancer/<int:user_id>/', methods=['GET', 'POST'])
+    @login_required
     def freelancer(user_id):
         title = 'Все актуальные заказы'
         form = ChoiceTaskForm()
@@ -385,20 +388,20 @@ def create_app():
             if form.validate_on_submit():
                 task = Task.query.get(form.tasks.data)
                 user = User.query.get(user_id)
-                task.freelancers_who_responded.append(user)
-                status = TaskStatus.query.filter(TaskStatus.status == 'freelancers_detected').one()
-                task.status = status.id
-                db.session.commit()
-
-                flash(f"Статус заказа изменён на {status}")
-                return render_template(
-                    'freelancer.html', title=title, form=form,
-                    form_change_page=form_change_page, user_id=user_id
-                    )
+                freelancers = task.freelancers_who_responded.all()
+                if user in freelancers:
+                    flash('Вы уже откликнулись на эту задачу!')
+                else:
+                    task.freelancers_who_responded.append(user)
+                    status = TaskStatus.query.filter(TaskStatus.status == 'freelancers_detected').one()
+                    task.status = status.id
+                    db.session.commit()
+                    flash(f"Статус заказа изменён на {status}")
 
         return render_template('freelancer.html', title=title, form=form, form_change_page=form_change_page, user_id=user_id)
 
     @app.route('/freelancer/<int:user_id>/fl_in_work/', methods=['GET', 'POST'])
+    @login_required
     def fl_in_work(user_id):
         title = 'Все заказы в работе'
         form = ChoiceTaskForm()
