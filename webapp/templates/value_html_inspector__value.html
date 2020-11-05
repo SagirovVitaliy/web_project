@@ -1,0 +1,42 @@
+{# Этот темплайт - часть виджета value_html_inspector.
+  
+  Как использовать темплайты виджета value_html_inspector:
+  В своём коде подключите
+    {% set item_value = example_variable %}
+    {% include 'value_html_inspector.html' %}
+  
+  где example_variable - это значение, состояние которого вы хотите
+  посмотреть.
+#}
+{# В этом темлпайте хранится чистая HTML-разметка без вписанных CSS или
+  скриптов JavaScript.
+#}
+{% if item_value is mapping %}
+  <table class="table value_html_inspector__table">
+    <tbody>
+      {% for key, item_value in item_value.items() %}
+      <tr>
+        <th class="value_html_inspector__dictionary_th">{{ key }}</th>
+        <td>
+          {% include 'value_html_inspector__value.html' %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% elif item_value is iterable and not item_value is string %}
+  <table class="table value_html_inspector__table">
+    <tbody>
+      {% for item_value in item_value %}
+      <tr>
+        <th class="value_html_inspector__list_th">{{ loop.index0 }}</th>
+        <td>
+          {% include 'value_html_inspector__value.html' %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  {{ item_value }}
+{% endif %}

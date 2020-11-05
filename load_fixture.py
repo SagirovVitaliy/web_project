@@ -117,7 +117,6 @@ def push_m2m_relationship_to_db(
 
     getattr(a_item, a_relationship_prop_name).append(b_item)
     db.session.commit()
-    pass
 
 
 def push_m2m_relationships_to_db(
