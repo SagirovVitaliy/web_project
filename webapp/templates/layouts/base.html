@@ -12,6 +12,10 @@
     <title>{{ title }}</title>
   </head>
   <body>
+    <header>
+      {% block page_header_content %}
+      {% endblock page_header_content %}
+    </header>
     <main>
       {% block page_main_content %}
         <div class="container">

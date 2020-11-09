@@ -43,17 +43,6 @@ class CreateTaskForm(FlaskForm):
     submit = SubmitField('Создать проект')
 
 
-class ChangePageForm(FlaskForm):
-    create = SubmitField('Создать заказ')
-    created = SubmitField('Созданные')
-    published = SubmitField('Опубликованные')
-    freelancers_detected = SubmitField('Активные')
-    in_work = SubmitField('В работе')
-    logout = SubmitField('Выйти')
-    in_review = SubmitField('Сдать проект')
-    actual = SubmitField('Актуальные заказы')
-
-
 class TaskStatusForm(FlaskForm):
     status = SelectField('Выбрать статус', choices=[], validators=[DataRequired()])
     submit = SubmitField('Сменить статус')

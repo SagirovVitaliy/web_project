@@ -7,7 +7,7 @@ from webapp.model import (
     freelancers_who_responded
     )
 from webapp.forms import (
-    IndexForm, RegistrationForm, LoginForm, ChoiceTaskForm, ChangePageForm,
+    IndexForm, RegistrationForm, LoginForm, ChoiceTaskForm,
     ChangeTaskStatusForm1, CreateTaskForm, ChoiceFreelancerForm,
     ChangeTaskStatusForm, DismissFreelancerFromTaskForm, ViewTaskForm
     )
@@ -129,141 +129,33 @@ def create_app():
     @login_required
     def customer(user_id):
         title = 'Все созданные заказы (статус created)'
-        form = ChoiceTaskForm()
         tasks = Task.query.filter(Task.customer == user_id, Task.status == CREATED).all()
-        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
-        form_change_page = ChangePageForm()
 
-        if request.method == 'POST':
-
-            if form_change_page.validate_on_submit() and form_change_page.logout.data:
-                return redirect(url_for('logout'))
-
-            elif form_change_page.validate_on_submit() and form_change_page.create.data:
-                return redirect(url_for('create_task', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.created.data:
-                return redirect(url_for('customer', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.published.data:
-                return redirect(url_for('published', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.freelancers_detected.data:
-                return redirect(url_for('freelancers_detected', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_work.data:
-                return redirect(url_for('in_work', user_id=user_id))
-
-            elif form.validate_on_submit():
-                task_id = form.tasks.data
-                return redirect(url_for('task', task_id=task_id, user_id=user_id))
-
-        return render_template('customer.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
+        return render_template('customer.html', title=title, tasks=tasks, user_id=user_id)
 
     @app.route('/customer/<int:user_id>/published/', methods=['GET', 'POST'])
     @login_required
     def published(user_id):
         title = 'Все опубликованные заказы (статус published)'
-        form = ChoiceTaskForm()
         tasks = Task.query.filter(Task.customer == user_id, Task.status == PUBLISHED).all()
-        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
-        form_change_page = ChangePageForm()
 
-        if request.method == 'POST':
-
-            if form_change_page.validate_on_submit() and form_change_page.logout.data:
-                return redirect(url_for('logout'))
-
-            elif form_change_page.validate_on_submit() and form_change_page.create.data:
-                return redirect(url_for('create_task', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.created.data:
-                return redirect(url_for('customer', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.published.data:
-                return redirect(url_for('published', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.freelancers_detected.data:
-                return redirect(url_for('freelancers_detected', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_work.data:
-                return redirect(url_for('in_work', user_id=user_id))
-
-            elif form.validate_on_submit():
-                task_id = form.tasks.data
-                return redirect(url_for('task', user_id=user_id, task_id=task_id))
-
-        return render_template('published.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
+        return render_template('published.html', title=title, user_id=user_id, tasks=tasks)
 
     @app.route('/customer/<int:user_id>/freelancers_detected/', methods=['GET', 'POST'])
     @login_required
     def freelancers_detected(user_id):
         title = 'Все заказы, на которые откликнулись'
-        form = ChoiceTaskForm()
         tasks = Task.query.filter(Task.customer == user_id, Task.status == FREELANCERS_DETECTED).all()
-        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
-        form_change_page = ChangePageForm()
 
-        if request.method == 'POST':
-
-            if form_change_page.validate_on_submit() and form_change_page.logout.data:
-                return redirect(url_for('logout'))
-
-            elif form_change_page.validate_on_submit() and form_change_page.create.data:
-                return redirect(url_for('create_task', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.created.data:
-                return redirect(url_for('customer', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.published.data:
-                return redirect(url_for('published', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.freelancers_detected.data:
-                return redirect(url_for('freelancers_detected', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_work.data:
-                return redirect(url_for('in_work', user_id=user_id))
-
-            elif form.validate_on_submit():
-                task_id = form.tasks.data
-                return redirect(url_for('task_in_work', task_id=task_id, user_id=user_id))
-
-        return render_template('freelancers_detected.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
+        return render_template('freelancers_detected.html', title=title, user_id=user_id, tasks=tasks)
 
     @app.route('/customer/<int:user_id>/in_work/', methods=['GET', 'POST'])
     @login_required
     def in_work(user_id):
         title = 'Все заказы в работе'
-        form = ChoiceTaskForm()
         tasks = Task.query.filter(Task.customer == user_id, Task.status == IN_WORK).all()
-        form.tasks.choices = [(task.id, task.task_name) for task in tasks]
-        form_change_page = ChangePageForm()
 
-        if request.method == 'POST':
-
-            if form_change_page.validate_on_submit() and form_change_page.logout.data:
-                return redirect(url_for('logout'))
-
-            elif form_change_page.validate_on_submit() and form_change_page.create.data:
-                return redirect(url_for('create_task', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.created.data:
-                return redirect(url_for('customer', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.published.data:
-                return redirect(url_for('published', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.freelancers_detected.data:
-                return redirect(url_for('freelancers_detected', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_work.data:
-                return redirect(url_for('in_work', user_id=user_id))
-
-            elif form.validate_on_submit():
-                task_id = form.tasks.data
-                return redirect(url_for('task_in_work', task_id=task_id))
-
-        return render_template('in_work.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
+        return render_template('in_work.html', title=title, tasks=tasks, user_id=user_id)
 
     @app.route('/customer/<int:user_id>/task/<int:task_id>/', methods=['GET', 'POST'])
     @login_required
@@ -271,36 +163,17 @@ def create_app():
         title = 'Информация по заказу (здесь мы можем менять с created на published)'
         form = ChangeTaskStatusForm1()
         form.status.choices = [(status.id, status.status) for status in TaskStatus.query.all()[:2]]
-        form_change_page = ChangePageForm()
 
         if request.method == 'POST':
-            if form_change_page.validate_on_submit() and form_change_page.logout.data:
-                return redirect(url_for('logout'))
-
-            elif form_change_page.validate_on_submit() and form_change_page.create.data:
-                return redirect(url_for('create_task', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.created.data:
-                return redirect(url_for('customer', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.published.data:
-                return redirect(url_for('published', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.freelancers_detected.data:
-                return redirect(url_for('freelancers_detected', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_work.data:
-                return redirect(url_for('in_work', user_id=user_id))
 
             if form.validate_on_submit():
                 status_id = form.status.data
                 task = Task.query.get(task_id)
                 task.status = status_id
                 db.session.commit()
-                flash(f"Статус заказа изменён на {status_id}")
+                flash(f"Статус заказа изменён на Опубликован")
 
-        return render_template('customer_task.html', title=title, form=form, form_change_page=form_change_page,
-            task_id=task_id, user_id=user_id)
+        return render_template('customer_task.html', title=title, form=form, task_id=task_id, user_id=user_id)
 
     @app.route('/customer/<int:user_id>/task_in_work/<int:task_id>/', methods=['GET', 'POST'])
     @login_required
@@ -310,27 +183,8 @@ def create_app():
         task = Task.query.get(task_id)
         freelancers = task.freelancers_who_responded.all()
         form.freelancers.choices = [(user.id, user.user_name) for user in freelancers]
-        form_change_page = ChangePageForm()
 
         if request.method == 'POST':
-
-            if form_change_page.validate_on_submit() and form_change_page.logout.data:
-                return redirect(url_for('logout'))
-
-            elif form_change_page.validate_on_submit() and form_change_page.create.data:
-                return redirect(url_for('create_task', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.created.data:
-                return redirect(url_for('customer', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.published.data:
-                return redirect(url_for('published', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.freelancers_detected.data:
-                return redirect(url_for('freelancers_detected', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_work.data:
-                return redirect(url_for('in_work', user_id=user_id))
 
             if form.validate_on_submit():
                 task = Task.query.get(task_id)
@@ -338,9 +192,9 @@ def create_app():
                 task.status = status.id
                 task.freelancer = form.freelancers.data
                 db.session.commit()
-                flash(f"Статус заказа изменён на {status}")
+                flash(f"Теперь ваш заказ в работе")
 
-        return render_template('task_in_work.html', title=title, form=form, task_id=task_id, form_change_page=form_change_page, user_id=user_id)
+        return render_template('task_in_work.html', title=title, form=form, task_id=task_id, user_id=user_id)
 
     @app.route('/customer/<int:user_id>/create_task/', methods=['GET', 'POST'])
     @login_required
@@ -375,22 +229,9 @@ def create_app():
         form = ChoiceTaskForm()
         tasks = Task.query.filter(Task.status.in_([PUBLISHED, FREELANCERS_DETECTED])).all()
         form.tasks.choices = [(task.id, task.task_name) for task in tasks]
-        form_change_page = ChangePageForm()
         
         if request.method == 'POST':
-            
-            if form_change_page.validate_on_submit() and form_change_page.logout.data:
-                return redirect(url_for('logout'))
 
-            elif form_change_page.validate_on_submit() and form_change_page.actual.data:
-                return redirect(url_for('freelancer', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_work.data:
-                return redirect(url_for('fl_in_work', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_review.data:
-                return redirect(url_for('', user_id=user_id))
-            
             if form.validate_on_submit():
                 task = Task.query.get(form.tasks.data)
                 user = User.query.get(user_id)
@@ -404,7 +245,7 @@ def create_app():
                     db.session.commit()
                     flash(f"Статус заказа изменён на {status}")
 
-        return render_template('freelancer.html', title=title, form=form, form_change_page=form_change_page, user_id=user_id)
+        return render_template('freelancer.html', title=title, form=form, tasks=tasks, user_id=user_id)
 
     @app.route('/freelancer/<int:user_id>/fl_in_work/', methods=['GET', 'POST'])
     @login_required
@@ -413,27 +254,14 @@ def create_app():
         form = ChoiceTaskForm()
         tasks = Task.query.filter(Task.freelancer == user_id, Task.status == IN_WORK).all()
         form.tasks.choices = [(task.id, task.task_name) for task in tasks]
-        form_change_page = ChangePageForm()
 
         if request.method == 'POST':
 
-            if form_change_page.validate_on_submit() and form_change_page.logout.data:
-                return redirect(url_for('logout'))
-
-            elif form_change_page.validate_on_submit() and form_change_page.actual.data:
-                return redirect(url_for('freelancer', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_work.data:
-                return redirect(url_for('fl_in_work', user_id=user_id))
-
-            elif form_change_page.validate_on_submit() and form_change_page.in_review.data:
-                return redirect(url_for('', user_id=user_id))
-
-            elif form.validate_on_submit():
+            if form.validate_on_submit():
                 task_id = form.tasks.data
                 return redirect(url_for('', task_id=task_id))
 
-        return render_template('fl_in_work.html', title=title, form=form, user_id=user_id, form_change_page=form_change_page)
+        return render_template('fl_in_work.html', title=title, form=form, user_id=user_id, tasks=tasks )
 
     @app.route('/change_task_status_from_in_work', methods=['GET', 'POST'])
     def change_task_status_from_in_work():

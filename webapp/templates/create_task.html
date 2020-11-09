@@ -1,9 +1,34 @@
 {% extends 'layouts/base.html' %}
+
+{% block page_header_content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('customer', user_id=user_id) }}">Free Freelance</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link" href="{{ url_for('customer', user_id=user_id) }}">Созданные</a>
+        <a class="nav-link" href="{{ url_for('published', user_id=user_id) }}">Опубликованные</a>
+        <a class="nav-link" href="{{ url_for('freelancers_detected', user_id=user_id) }}">Активные</a>
+        <a class="nav-link" href="{{ url_for('in_work', user_id=user_id) }}">В работе</a>
+      </div>
+    </div>
+    <form class="form-inline mr-3" action="{{ url_for('create_task', user_id=user_id) }}">
+      <button class="btn btn-outline-light btn-sm" type="submit" >Создать проект</button>
+    </form>
+    <form class="form-inline " action="{{ url_for('logout') }}">
+      <button class="btn btn-outline-light btn-sm" type="submit" >Выйти</button>
+    </form>
+  </div>
+</nav>
+{% endblock page_header_content %}
+
 {% block page_main_content %}
   <div class="container">
-    <h1>{{ title }}</h1>
     <div class="row">
-      <div class="col-4">
+      <div class="col-8">
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <div class="alert alert-warning" role="alert">
@@ -13,40 +38,37 @@
             </div>
           {% endif %}
         {% endwith %}
+        <br>
         <form action="{{url_for( 'create_task', user_id=user_id )}}" method="POST">
           {{ form.hidden_tag() }}
           <div class="form-group">
-            {{ form.task_name.label }}</br>
-            {{ form.task_name() }}
+            {{ form.task_name(placeholder=form.task_name.label.text) }}
             {% for error in form.task_name.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
           </div>
           <div class="form-group">
-            {{ form.description.label }}</br>
-            {{ form.description() }}
+            {{ form.description(placeholder=form.description.label.text, rows="2") }}
             {% for error in form.description.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
-          </div>
+          </div>  
+          
           <div class="form-group">
-              {{ form.price.label }}</br>
-              {{ form.price() }}
+              {{ form.price(placeholder=form.price.label.text) }}
               {% for error in form.price.errors %}
               <span style="color: red;">[{{ error }}]</span>
               {% endfor %}
           </div>
           <div class="form-group">
-              {{ form.deadline.label }}</br>
-              {{ form.deadline() }}
+              {{ form.deadline(placeholder=form.deadline.label.text) }}
               {% for error in form.deadline.errors %}
               <span style="color: red;">[{{ error }}]</span>
               {% endfor %}
           </div>
           <div>
-             </br>
-             {{ form.submit }}
-          </div>   
+             {{ form.submit(class="btn btn-dark") }}
+          </div>
         </form>
       </div>
       <div class="col-4">
