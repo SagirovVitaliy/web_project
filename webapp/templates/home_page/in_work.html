@@ -41,7 +41,8 @@
         {% endwith %}
         <br>
         {% for task in tasks %}
-          <a href="{{ url_for('task_in_work', user_id=user_id, task_id = task.id) }}">{{ task }}</a><br>
+          <a href="{{ url_for('ready_fl', user_id=user_id, task_id = task.id) }}">{{ task }}</a><br>
+          <hr>
         {% endfor %}
       </div>
       <div class="col-4">

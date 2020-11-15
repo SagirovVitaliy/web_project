@@ -10,8 +10,8 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-link" href="{{ url_for('customer', user_id=user_id) }}">Созданные</a>
-        <a class="nav-link" href="{{ url_for('published', user_id=user_id) }}">Опубликованные</a>
-        <a class="nav-link active" href="{{ url_for('freelancers_detected', user_id=user_id) }}">Активные</a>
+        <a class="nav-link active" href="{{ url_for('published', user_id=user_id) }}">Опубликованные</a>
+        <a class="nav-link" href="{{ url_for('freelancers_detected', user_id=user_id) }}">Активные</a>
         <a class="nav-link" href="{{ url_for('in_work', user_id=user_id) }}">В работе</a>
       </div>
     </div>
@@ -40,11 +40,12 @@
         {% endwith %}
         <br>
         {% for task in tasks %}
-          <a href="{{ url_for('task_in_work', user_id=user_id, task_id = task.id) }}">{{ task }}</a><br>
+          <a href="{{ url_for('ct_task', user_id=user_id, task_id = task.id) }}">{{ task }}</a><br>
+          <hr>
         {% endfor %}
       </div>
       <div class="col-4">
       </div>
     </div>
   </div>
-{% endblock page_main_content%}
+{% endblock page_main_content %}

@@ -3,11 +3,6 @@ from wtforms import StringField, PasswordField, SubmitField, IntegerField, DateF
 from wtforms.validators import DataRequired, EqualTo
 
 
-class IndexForm(FlaskForm):
-    submit_for_signin = SubmitField('Войти')
-    submit_for_signup = SubmitField('Зарегистрироваться')
-
-
 class RegistrationForm(FlaskForm):
     user_name = StringField('Введите имя пользователя', validators=[DataRequired()])
     email = StringField('Введите Email', validators=[DataRequired()])
@@ -22,7 +17,7 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     user_name = StringField('Имя пользователя', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
-    submit = SubmitField('Войти')
+    submit = SubmitField('Войти', render_kw={'class':'btn btn-dark'})
 
 
 class ChoiceTaskForm(FlaskForm):
@@ -39,7 +34,7 @@ class CreateTaskForm(FlaskForm):
     task_name = StringField('Название проекта', validators=[DataRequired()])
     description = TextAreaField('Описание', validators=[DataRequired()])
     price = IntegerField('Цена', validators=[DataRequired()])
-    deadline = DateField('Дата завершения проекта', format='%d.%m.%Y', validators=[DataRequired()])
+    deadline = DateField('дд.мм.гггг', format='%d.%m.%Y', validators=[DataRequired()])
     submit = SubmitField('Создать проект')
 
 

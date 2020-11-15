@@ -29,6 +29,7 @@
   <div class="container">
     <div class="row">
       <div class="col-8">
+        <br>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <div class="alert alert-primary" role="alert">
@@ -38,19 +39,24 @@
             </div>
           {% endif %}
         {% endwith %}
-        <form action="{{url_for('task_in_work', user_id=user_id, task_id=task_id )}}" method="POST">
-          {{ form.hidden_tag() }}
-          {{ form.csrf_token }}
-          <br>
-          {{ form.freelancers.label }}
-          <br>
-          {{ form.freelancers }}
-          {% for error in form.freelancers.errors %}
-          <span style="color: red;">[{{ error }}]</span>
-          {% endfor %}
+        <h3>Фрилансер</h3>
+        <table class="table">
+          <tbody>
+            <tr>
+              <th scope="row">Имя</th>
+              <td>{{ user_name }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Навыки</th>
+              <td>{{ public_bio }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-          {{ form.submit }}
+        <form action="{{url_for('selected_fl', user_id=user_id, task_id=task_id, fl_id=fl_id)}}" method="POST">
+          <button type="submit" class="btn btn-dark">Назначить</button>
         </form>
+
       </div>
       <div class="col-4">
       </div>

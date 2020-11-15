@@ -33,23 +33,10 @@
             </div>
           {% endif %}
         {% endwith %}
-        <form action="{{url_for('fl_in_work', user_id=user_id )}}" method="POST">
-          {{ form.hidden_tag() }}
-
-          {{ form.csrf_token }}
-          <br>
-          {{ form.tasks.label }}
-          <br>
-          {{ form.tasks }}
-          {% for error in form.tasks.errors %}
-          <span style="color: red;">[{{ error }}]</span>
-          {% endfor %}
-
-          {{ form.submit }}
-        </form>
         <br>
         {% for task in tasks %}
-          <a href="{{ url_for('task', user_id=user_id, task_id = task.id) }}">{{ task }}</a><br>
+          <a href="{{ url_for('fl_task', user_id=user_id, task_id = task.id) }}">{{ task }}</a><br>
+          <hr>
         {% endfor %}
         </div>
       <div class="col-4">
