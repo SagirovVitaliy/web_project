@@ -1,8 +1,9 @@
 '''Несколько валидаторов чтобы сделать маршруты красивее.'''
 
-from webapp.model import Task, User
+from webapp.db import CUSTOMER, FREELANCER
+from webapp.user.models import User, UserRole
+from webapp.task.models import Task, TaskStatus
 from webapp.errors import ValidationError
-from webapp.model import CUSTOMER, FREELANCER
 
 
 def validate_form(

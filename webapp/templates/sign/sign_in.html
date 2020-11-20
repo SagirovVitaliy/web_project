@@ -3,12 +3,12 @@
 {% block page_header_content %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('index') }}">Free Freelance</a>
+    <a class="navbar-brand" href="{{ url_for('sign.index') }}">Free Freelance</a>
     </div>
-    <form class="form-inline mr-3" action="{{ url_for('registration') }}">
+    <form class="form-inline mr-3" action="{{ url_for('sign.sign_up') }}">
       <button class="btn btn-outline-light btn-sm" type="submit" >Регистрация</button>
     </form>
-    <form class="form-inline " action="{{ url_for('login') }}">
+    <form class="form-inline " action="{{ url_for('sign.sign_in') }}">
       <button class="btn btn-outline-light btn-sm" type="submit" >Войти</button>
     </form>
   </div>
@@ -29,17 +29,21 @@
             </div>
           {% endif %}
         {% endwith %}
-        <form action="{{url_for( 'login')}}" method="POST">
+        <form action="{{url_for( 'sign.sign_in' )}}" method="POST">
           {{ form.hidden_tag() }}
           <div>
             {{ form.csrf_token }}
-            <div>
+            <div class="form-group">
               {{ form.user_name.label }}<br>
               {{ form.user_name }}
             </div>
-            <div>
+            <div class="form-group">
               {{ form.password.label }}<br>
               {{ form.password }}
+            </div>
+            <div class="custom-control custom-checkbox custom-checkbox-black">
+              {{ form.remember_me }}
+              {{ form.remember_me.label(class_="custom-control-label") }}
             </div>
             <div>
               <br>
