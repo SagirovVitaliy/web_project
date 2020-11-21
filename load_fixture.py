@@ -13,7 +13,7 @@
     - особый случай: будет подключаться фикстура по адресу fixtures/default.json
 '''
 from webapp import create_app
-from webapp.model import (
+from webapp.db import (
     db, Email, Phone, UserRole, User, Tag, TaskStatus, Task,
     freelancers_who_responded
     )
