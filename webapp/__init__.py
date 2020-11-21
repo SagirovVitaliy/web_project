@@ -5,7 +5,6 @@ from flask_login import LoginManager
 
 from webapp.db import db, User, Task, TaskStatus
 
-from webapp.forms import ChangeTaskStatusForm, DismissFreelancerFromTaskForm, ViewTaskForm
 from webapp.db import (
     CUSTOMER,
     FREELANCER,

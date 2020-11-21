@@ -1,7 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from webapp.db import db, Task, TaskStatus, User
 from flask_login import login_required
-from webapp.task.forms import CreateTaskForm, SimpleConfirmForm
+from webapp.task.forms import (
+    CreateTaskForm,
+    SimpleConfirmForm,
+    DismissFreelancerFromTaskForm
+    )
 from webapp.db import (
     CUSTOMER,
     FREELANCER,
@@ -105,7 +109,7 @@ def move_task_to_in_review(task_id):
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message='Вы действительно хотите передать эту задачу на ревью?'
+                feedback_message='Вы действительно хотите передать эту Задачу на ревью?'
             )
 
         elif request.method == 'POST':
@@ -167,7 +171,7 @@ def move_task_to_in_work(task_id):
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message='Вы действительно хотите передать эту задачу назад на доработку?'
+                feedback_message='Вы действительно хотите передать эту Задачу назад на доработку?'
             )
 
         elif request.method == 'POST':
@@ -229,7 +233,7 @@ def move_task_to_done(task_id):
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message='Вы действительно хотите закончить эту задачу как успешно завершённую?'
+                feedback_message='Вы действительно хотите закончить эту Задачу как успешно завершённую?'
             )
 
         elif request.method == 'POST':
@@ -291,7 +295,7 @@ def cancel_task(task_id):
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message='Вы действительно хотите отменить эту задачу?'
+                feedback_message='Вы действительно хотите отменить эту Задачу?'
             )
 
         elif request.method == 'POST':
@@ -344,15 +348,8 @@ def cancel_task(task_id):
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_confirmed_freelancer_from_task', methods=['GET', 'POST'])
 def dismiss_confirmed_freelancer_from_task():
-    '''Задать маршрут по которому можно тестировать логику.
-
-    Здесь мы хотим тестировать логику:
-    ----------------------------------
-
-    Отрезок негативного пути - Отцепляем от Задачи одного из предварительно
-    Откликнувшихся Фрилансеров.
-    '''
-    title = 'Тестируем freelancer.dismiss_confirmed_freelancer_from_task'
+    '''Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'''
+    title = 'Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'
     form_url = url_for('task.dismiss_confirmed_freelancer_from_task', task_id=task_id)
 
     form = DismissFreelancerFromTaskForm()
@@ -373,13 +370,13 @@ def dismiss_confirmed_freelancer_from_task():
         try:
             validators.validate_form(form)
 
-            current_task_id = request.form.get('task_id');
-            current_user_id = request.form.get('user_id');
+            task_id = request.form.get('task_id');
+            user_id = request.form.get('user_id');
 
-            task = Task.query.get(current_task_id)
+            task = Task.query.get(task_id)
             validators.validate_task_existence(task)
 
-            user = User.query.get(current_user_id)
+            user = User.query.get(user_id)
             validators.validate_user_existence(user)
             validators.validate_if_user_is_freelancer(user)
             validators.is_user_connected_to_task_as_confirmed_freelancer(
@@ -428,15 +425,12 @@ def dismiss_confirmed_freelancer_from_task():
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_responded_freelancer_from_task', methods=['GET', 'POST'])
 def dismiss_responded_freelancer_from_task(task_id):
-    '''Задать маршрут по которому можно тестировать логику.
-
-    Здесь мы хотим тестировать логику:
-    ----------------------------------
-
-    Отрезок негативного пути - Отцепляем от Задачи одного из предварительно
-    Откликнувшихся Фрилансеров.
+    '''Заказчик требует отцепить Предв. Отклик. Фрилансера от Задачи
+    
+    Заказчик требует отцепить Предварительно Откликнувшихся Фрилансера от Задачи
     '''
-    title = 'Тестируем freelancer.dismiss_responded_freelancer_from_task'
+
+    title = 'Заказчик требует отцепить Предварительно Откликнувшихся Фрилансера от Задачи'
     form_url = url_for('task.dismiss_responded_freelancer_from_task', task_id=task_id)
 
     form = DismissFreelancerFromTaskForm()
@@ -457,13 +451,13 @@ def dismiss_responded_freelancer_from_task(task_id):
         try:
             validators.validate_form(form)
 
-            current_task_id = request.form.get('task_id');
-            current_user_id = request.form.get('user_id');
+            task_id = request.form.get('task_id');
+            user_id = request.form.get('user_id');
 
-            task = Task.query.get(current_task_id)
+            task = Task.query.get(task_id)
             validators.validate_task_existence(task)
 
-            user = User.query.get(current_user_id)
+            user = User.query.get(user_id)
             validators.validate_user_existence(user)
             validators.validate_if_user_is_freelancer(user)
             validators.is_user_connected_to_task_as_responded_freelancer(
@@ -476,7 +470,7 @@ def dismiss_responded_freelancer_from_task(task_id):
             # Отцепить от Задачи: Предваритально Откликнувшегося Фрилансера.
             freelancers = task.freelancers_who_responded.filter(
                 User.role == FREELANCER,
-                User.id != current_user_id
+                User.id != user_id
             )
             task.freelancers_who_responded = freelancers
             if task.status == FREELANCERS_DETECTED:
