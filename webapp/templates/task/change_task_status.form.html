@@ -1,4 +1,19 @@
 {% extends 'layouts/base.html' %}
+
+{% block page_header_content %}
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('sign.index') }}">Free Freelance</a>
+    </div>
+    <form class="form-inline mr-3" action="{{ url_for('sign.sign_up') }}">
+      <button class="btn btn-outline-light btn-sm" type="submit" >Регистрация</button>
+    </form>
+    <form class="form-inline " action="{{ url_for('sign.sign_in') }}">
+      <button class="btn btn-outline-light btn-sm" type="submit" >Войти</button>
+    </form>
+  </nav>
+{% endblock page_header_content %}
+
 {% block page_main_content %}
   <div class="container">
     <h1>{{ title }}</h1>
@@ -18,24 +33,28 @@
     {% endwith %}
     <form action="{{ form_url }}" method="POST">
       {{ form.hidden_tag() }}
-      <div class="form-group">
-        {{ form.task_id.label }}<br>
-        {{ form.task_id() }}
-        {% for error in form.task_id.errors %}
-        <div class="alert alert-warning" role="alert">
-          {{ error }}
+      {% if task_id is defined %}
+        <div class="form-group">
+          {{ form.task_id.label }}<br>
+          {{ form.task_id() }}
+          {% for error in form.task_id.errors %}
+          <div class="alert alert-warning" role="alert">
+            {{ error }}
+          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
-      <div class="form-group">
-        {{ form.status.label }}<br>
-        {{ form.status() }}
-        {% for error in form.status.errors %}
-        <div class="alert alert-warning" role="alert">
-          {{ error }}
+      {% endif %}
+      {% if task_id is defined %}
+        <div class="form-group">
+          {{ form.status.label }}<br>
+          {{ form.status() }}
+          {% for error in form.status.errors %}
+          <div class="alert alert-warning" role="alert">
+            {{ error }}
+          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
+      {% endif %}
       <div>
         <br>
         {{ form.submit }}

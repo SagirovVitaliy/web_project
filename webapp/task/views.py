@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from webapp.db import db, Task, TaskStatus, User
 from flask_login import login_required
-from webapp.task.forms import CreateTaskForm
+from webapp.task.forms import CreateTaskForm, SimpleConfirmForm
 from webapp.db import (
     CUSTOMER,
     FREELANCER,
@@ -18,6 +18,14 @@ from webapp.errors import ValidationError
 import webapp.validators as validators
 
 blueprint = Blueprint('task', __name__)
+
+
+def get_task_debug_info(task_id):
+    '''Получить снимок Задачи для дебага.'''
+    task = Task.query.get(task_id)
+    if task == None:
+        return None;
+    return task.generate_level_2_debug_dictionary()
 
 
 @blueprint.route('/customer/<int:user_id>/create_task/', methods=['GET', 'POST'])
@@ -60,12 +68,7 @@ def view_task(task_id):
         )
 
         # Сделать свежий снимок Задачи для дебага.
-        task_debug_info = (
-            Task
-            .query
-            .get(task_id)
-            .generate_level_2_debug_dictionary()
-        )
+        task_debug_info = get_task_debug_info(task_id)
     except ValidationError as e:
         return render_template(
             'task/view_task.html',
@@ -82,241 +85,194 @@ def view_task(task_id):
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_review', methods=['GET', 'POST'])
 def move_task_to_in_review(task_id):
-    '''Фрилансер двигает заказ со статуса 'in_work' на 'in_review'.'''
-    title = 'Фрилансер двигает заказ со статуса in_work на in_review'
+    '''Фрилансер требует двинуть заказ со статуса IN_WORK на IN_REVIEW.'''
+    title = 'Фрилансер требует передать заказ на ревью Заказчику'
+    form_url = url_for('task.move_task_to_in_review', task_id=task_id)
 
-    form = SimpleSubmitForm()
+    form = SimpleConfirmForm()
 
-    if request.method == 'GET':
-
-        return render_template(
-            'change_task_status.form.html',
-            title=title,
-            form=form,
-            form_url=form_url
+    try:
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(
+            task=task,
+            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
         )
 
-    elif request.method == 'POST':
+        if request.method == 'GET':
 
-        try:
-            validators.validate_form(form)
-
-            current_task_id = request.form.get('task_id');
-            new_status_id = request.form.get('status');
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info1 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
-
-            task = Task.query.get(current_task_id)
-            validators.validate_task_existence(task)
-
-            # Внести изменения в Задачу.
-            task.status = new_status_id
-            db.session.commit()
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info2 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
-        except ValidationError as e:
-            db.session.rollback()
             return render_template(
-                'change_task_status.form.html',
+                'task/change_task_status.form.html',
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message=e.args[0]
+                feedback_message='Вы действительно хотите передать эту задачу на ревью?'
             )
-        except:
-            db.session.rollback()
-            raise
-        else:
-            return render_template(
-                'change_task_status.success.html',
-                title=title,
-                task_before=task_debug_info1,
-                task_after=task_debug_info2
-            )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                status_id = IN_REVIEW;
+
+                # Внести изменения в Задачу.
+                task.status = status_id
+                db.session.commit()
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return render_template(
+                    'task/change_task_status.success.html',
+                    title=title,
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
+                )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/change_task_status.form.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+        )
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_work', methods=['GET', 'POST'])
 def move_task_to_in_work(task_id):
-    '''Задать маршрут по которому можно тестировать логику.
-
-    Здесь мы хотим тестировать логику:
-    ----------------------------------
-
-    Отрезок позитивного пути - Заказчик двигает заказ со статуса 'in_review'
-    либо на 'in_work', либо на 'done'.
-    '''
-    title = 'Тестируем task.status: in_review -> (in_work|done)'
+    '''Заказчик требует двинуть Задачу со статуса IN_REVIEW в IN_WORK'''
+    title = 'Заказчик требует передать Задачу назад на доработку к Фрилансеру'
     form_url = url_for('task.move_task_to_in_work', task_id=task_id)
 
-    allowed_statuses = [ IN_WORK ]
-    status_list = TaskStatus.query.filter(TaskStatus.id.in_(allowed_statuses))
+    form = SimpleConfirmForm()
 
-    form = ChangeTaskStatusForm()
-    form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
-    form.status.choices = [(g.id, g.status) for g in status_list]
-
-    if request.method == 'GET':
-
-        return render_template(
-            'change_task_status.form.html',
-            title=title,
-            form=form,
-            form_url=form_url
+    try:
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(
+            task=task,
+            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
         )
 
-    elif request.method == 'POST':
+        if request.method == 'GET':
 
-        try:
-            validators.validate_form(form)
-
-            current_task_id = request.form.get('task_id');
-            new_status_id = request.form.get('status');
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info1 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
-
-            task = Task.query.get(current_task_id)
-            validators.validate_task_existence(task)
-
-            # Внести изменения в Задачу.
-            task.status = new_status_id
-            db.session.commit()
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info2 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
-        except ValidationError as e:
-            db.session.rollback()
             return render_template(
-                'change_task_status.form.html',
+                'task/change_task_status.form.html',
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message=e.args[0]
+                feedback_message='Вы действительно хотите передать эту задачу назад на доработку?'
             )
-        except:
-            db.session.rollback()
-            raise
-        else:
-            return render_template(
-                'change_task_status.success.html',
-                title=title,
-                task_before=task_debug_info1,
-                task_after=task_debug_info2
-            )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                status_id = IN_WORK;
+
+                # Внести изменения в Задачу.
+                task.status = status_id
+                db.session.commit()
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return render_template(
+                    'task/change_task_status.success.html',
+                    title=title,
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
+                )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/change_task_status.form.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+        )
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_done', methods=['GET', 'POST'])
 def move_task_to_done(task_id):
-    '''Задать маршрут по которому можно тестировать логику.
-
-    Здесь мы хотим тестировать логику:
-    ----------------------------------
-
-    Отрезок позитивного пути - Заказчик двигает заказ со статуса 'in_review'
-    либо на 'in_work', либо на 'done'.
-    '''
-    title = 'Тестируем task.status: in_review -> (in_work|done)'
+    '''Заказчик требует двинуть Задачу со статуса IN_REVIEW в DONE'''
+    title = 'Заказчик требует закочить Задачу как успешно завершённую'
     form_url = url_for('task.move_task_to_done', task_id=task_id)
 
-    allowed_statuses = [ DONE ]
-    status_list = TaskStatus.query.filter(TaskStatus.id.in_(allowed_statuses))
+    form = SimpleConfirmForm()
 
-    form = ChangeTaskStatusForm()
-    form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
-    form.status.choices = [(g.id, g.status) for g in status_list]
-
-    if request.method == 'GET':
-
-        return render_template(
-            'change_task_status.form.html',
-            title=title,
-            form=form,
-            form_url=form_url
+    try:
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(
+            task=task,
+            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
         )
 
-    elif request.method == 'POST':
+        if request.method == 'GET':
 
-        try:
-            validators.validate_form(form)
-
-            current_task_id = request.form.get('task_id');
-            new_status_id = request.form.get('status');
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info1 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
-
-            task = Task.query.get(current_task_id)
-            validators.validate_task_existence(task)
-
-            # Внести изменения в Задачу.
-            task.status = new_status_id
-            db.session.commit()
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info2 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
-        except ValidationError as e:
-            db.session.rollback()
             return render_template(
-                'change_task_status.form.html',
+                'task/change_task_status.form.html',
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message=e.args[0]
+                feedback_message='Вы действительно хотите закончить эту задачу как успешно завершённую?'
             )
-        except:
-            db.session.rollback()
-            raise
-        else:
-            return render_template(
-                'change_task_status.success.html',
-                title=title,
-                task_before=task_debug_info1,
-                task_after=task_debug_info2
-            )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                status_id = DONE;
+
+                # Внести изменения в Задачу.
+                task.status = status_id
+                db.session.commit()
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return render_template(
+                    'task/change_task_status.success.html',
+                    title=title,
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
+                )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/change_task_status.form.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+        )
 
 
 @blueprint.route('/tasks/<int:task_id>/cancel_task', methods=['GET', 'POST'])
 def cancel_task(task_id):
-    '''Задать маршрут по которому можно тестировать логику.
-
-    Здесь мы хотим тестировать логику:
-    ----------------------------------
-
-    Отрезок негативного пути - Заказчик отменяет Задачу.
-    '''
-    title = 'Тестируем customer.cancel_task'
+    '''Заказчик требует двинуть Задачу в статус STOPPED'''
+    title = 'Заказчик требует отменить Задачу'
     form_url = url_for('task.cancel_task', task_id=task_id)
 
     allowed_status_codes = [ 'stopped' ]

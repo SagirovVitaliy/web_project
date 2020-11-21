@@ -3,6 +3,10 @@ from wtforms import StringField, SubmitField, IntegerField, DateField, TextAreaF
 from wtforms.validators import DataRequired
 
 
+class SimpleConfirmForm(FlaskForm):
+    submit = SubmitField('Подтвердить')
+
+
 class CreateTaskForm(FlaskForm):
     task_name = StringField('Название проекта', validators=[DataRequired()])
     description = TextAreaField('Описание', validators=[DataRequired()])
