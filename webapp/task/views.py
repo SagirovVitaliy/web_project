@@ -340,14 +340,12 @@ def dismiss_confirmed_freelancer_from_task(task_id):
     form = DismissFreelancerFromTaskForm()
 
     try:
-        # form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
-        
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
 
+        # Подготовить form.user_id.choices.
         user_id = task.freelancer;
         user = User.query.get(user_id)
-        
         form.user_id.choices = []
         if not user == None:
             form.user_id.choices = [[user.id, user.user_name]]
@@ -389,8 +387,8 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                     # если задача - в Статусе когда нельзя делать
                     # последующие шаги к Главной Цели, не имея Фрилансеров в
                     # этом списке, тогда надо перевести Задачу в Статус
-                    # 'created'.
-                    task.status = CREATED
+                    # PUBLISHED.
+                    task.status = PUBLISHED
                 db.session.commit()
 
                 # Сделать свежий снимок Задачи для дебага.
@@ -428,71 +426,79 @@ def dismiss_responded_freelancer_from_task(task_id):
 
     form = DismissFreelancerFromTaskForm()
 
-    form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
+    try:
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(task=task)
 
-    if request.method == 'GET':
-
-        return render_template(
-            'task/dismiss_freelancer_from_task.form.html',
-            title=title,
-            form=form,
-            form_url=form_url
+        # Подготовить form.user_id.choices.
+        freelancers = task.freelancers_who_responded.filter(
+            User.role == FREELANCER,
         )
+        form.user_id.choices = []
+        if not freelancers == None:
+            form.user_id.choices = [(g.id, g.user_name) for g in freelancers]
 
-    elif request.method == 'POST':
+        if request.method == 'GET':
 
-        try:
-            validators.validate_form(form)
-
-            user_id = request.form.get('user_id');
-
-            task = Task.query.get(task_id)
-            validators.validate_task_existence(task)
-
-            user = User.query.get(user_id)
-            validators.validate_user_existence(user)
-            validators.validate_if_user_is_freelancer(user)
-            validators.is_user_connected_to_task_as_responded_freelancer(
-                user=user, task=task
-            )
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info1 = get_task_debug_info(task_id)
-
-            # Отцепить от Задачи: Предваритально Откликнувшегося Фрилансера.
-            freelancers = task.freelancers_who_responded.filter(
-                User.role == FREELANCER,
-                User.id != user_id
-            )
-            task.freelancers_who_responded = freelancers
-            if task.status == FREELANCERS_DETECTED:
-                if not freelancers.count() > 0:
-                    # Если это был удалён последний Фрилансер в списке; и
-                    # если задача - в Статусе когда нельзя делать
-                    # последующие шаги к Главной Цели, не имея Фрилансеров в
-                    # этом списке, тогда надо перевести Задачу в Статус
-                    # 'created'.
-                    task.status = CREATED
-            db.session.commit()
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info2 = get_task_debug_info(task_id)
-        except ValidationError as e:
-            db.session.rollback()
             return render_template(
                 'task/dismiss_freelancer_from_task.form.html',
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message=e.args[0]
+                feedback_message='Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите отцепить от Задачи'
             )
-        except:
-            db.session.rollback()
-            raise
-        else:
-            return render_template(
-                'task/dismiss_freelancer_from_task.success.html',
-                title=title,
-                task_before=task_debug_info1,
-                task_after=task_debug_info2
-            )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                user_id = request.form.get('user_id');
+
+                user = User.query.get(user_id)
+                validators.validate_user_existence(user)
+                validators.validate_if_user_is_freelancer(user)
+                validators.is_user_connected_to_task_as_responded_freelancer(
+                    user=user, task=task
+                )
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                # Отцепить от Задачи: Предваритально Откликнувшегося Фрилансера.
+                freelancers = task.freelancers_who_responded.filter(
+                    User.role == FREELANCER,
+                    User.id != user_id
+                )
+                task.freelancers_who_responded = freelancers
+                if task.status == FREELANCERS_DETECTED:
+                    if not freelancers.count() > 0:
+                        # Если это был удалён последний Фрилансер в списке; и
+                        # если задача - в Статусе когда нельзя делать
+                        # последующие шаги к Главной Цели, не имея Фрилансеров в
+                        # этом списке, тогда надо перевести Задачу в Статус
+                        # PUBLISHED.
+                        task.status = PUBLISHED
+                db.session.commit()
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return render_template(
+                    'task/dismiss_freelancer_from_task.success.html',
+                    title=title,
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
+                )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/dismiss_freelancer_from_task.form.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+        )
