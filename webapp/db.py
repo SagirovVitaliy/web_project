@@ -1,5 +1,5 @@
-from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Задаём конвенции того как называть Constraints. Подробней зачем это нужно
@@ -121,6 +121,14 @@ class User(db.Model, UserMixin):
     
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+    @property
+    def is_customer(self):
+        return self.role == CUSTOMER
+
+    @property
+    def is_freelancer(self):
+        return self.role == FREELANCER
 
     def __repr__(self):
         return prettify(
@@ -313,7 +321,7 @@ class Task(db.Model):
 
         return packet
 
-      
+
 class TaskComment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String())
