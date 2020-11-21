@@ -339,7 +339,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
     call_to_action_text = 'Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите отцепить от Задачи'
 
     form = SimpleConfirmForm()
-    freelancer_choises = []
+    freelancer_choices = []
 
     try:
         task = Task.query.get(task_id)
@@ -349,7 +349,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
         user_id = task.freelancer;
         user = User.query.get(user_id)
         if not user == None:
-            freelancer_choises = [user]
+            freelancer_choices = [user]
 
         if request.method == 'GET':
 
@@ -359,7 +359,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                 call_to_action_text=call_to_action_text,
                 form=form,
                 form_url=form_url,
-                freelancer_choises=freelancer_choises
+                freelancer_choices=freelancer_choices
             )
 
         elif request.method == 'POST':
@@ -414,7 +414,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
             call_to_action_text=call_to_action_text,
             form=form,
             form_url=form_url,
-            freelancer_choises=freelancer_choises,
+            freelancer_choices=freelancer_choices,
             feedback_message=e.args[0]
         )
 
@@ -431,7 +431,7 @@ def dismiss_responded_freelancer_from_task(task_id):
     call_to_action_text = 'Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите отцепить от Задачи'
 
     form = SimpleConfirmForm()
-    freelancer_choises = []
+    freelancer_choices = []
 
     try:
         task = Task.query.get(task_id)
@@ -444,7 +444,7 @@ def dismiss_responded_freelancer_from_task(task_id):
                 'id': user.id,
                 'url': f'/freelancers/{user.id}',
             }
-        freelancer_choises = task.freelancers_who_responded.filter(
+        freelancer_choices = task.freelancers_who_responded.filter(
             User.role == FREELANCER,
         ).all()
 
@@ -456,7 +456,7 @@ def dismiss_responded_freelancer_from_task(task_id):
                 call_to_action_text=call_to_action_text,
                 form=form,
                 form_url=form_url,
-                freelancer_choises=freelancer_choises
+                freelancer_choices=freelancer_choices
             )
 
         elif request.method == 'POST':
@@ -513,6 +513,6 @@ def dismiss_responded_freelancer_from_task(task_id):
             call_to_action_text=call_to_action_text,
             form=form,
             form_url=form_url,
-            freelancer_choises=freelancer_choises,
+            freelancer_choices=freelancer_choices,
             feedback_message=e.args[0]
         )
