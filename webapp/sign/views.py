@@ -83,5 +83,19 @@ def sign_out():
 @blueprint.route('/', methods=['GET', 'POST'])
 def index():
     title = 'Главная страница'
+    demo_links = [
+        {
+            'url': url_for('task.view_task', task_id=1),
+            'label': 'Просмотреть Задачу номер 1.',
+        },
+        {
+            'url': url_for('task.view_task', task_id=2),
+            'label': 'Просмотреть Задачу номер 2.',
+        },
+    ]
 
-    return render_template('sign/index.html', title=title)
+    return render_template(
+        'sign/index.html',
+        title=title,
+        demo_links=demo_links
+        )

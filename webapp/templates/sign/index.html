@@ -4,14 +4,13 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand" href="{{ url_for('sign.index') }}">Free Freelance</a>
-    </div>
-    <form class="form-inline mr-3" action="{{ url_for('sign.sign_up') }}">
-      <button class="btn btn-outline-light btn-sm" type="submit" >Регистрация</button>
-    </form>
-    <form class="form-inline " action="{{ url_for('sign.sign_in') }}">
-      <button class="btn btn-outline-light btn-sm" type="submit" >Войти</button>
-    </form>
   </div>
+  <form class="form-inline mr-3" action="{{ url_for('sign.sign_up') }}">
+    <button class="btn btn-outline-light btn-sm" type="submit" >Регистрация</button>
+  </form>
+  <form class="form-inline " action="{{ url_for('sign.sign_in') }}">
+    <button class="btn btn-outline-light btn-sm" type="submit" >Войти</button>
+  </form>
 </nav>
 {% endblock page_header_content %}
 
@@ -31,6 +30,20 @@
         {% endwith %}
       </div>
       <div class="col-4">
+      </div>
+    </div>
+    <br>
+    <div>
+      <div class="list-group" style="display: inline-block;">
+        {% for demo_link in demo_links %}
+          <a
+            class="list-group-item"
+            href="{{ demo_link.get('url') }}"
+            >
+            {{ demo_link.get('url') }}<br>
+            {{ demo_link.get('label') }}<br>
+          </a>
+        {% endfor %}
       </div>
     </div>
   </div>
