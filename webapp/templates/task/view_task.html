@@ -2,6 +2,11 @@
 {% block page_main_content %}
   <div class="container">
     <h1>{{ title }}</h1>
+    {% if feedback_message is string %}
+      <div class="alert alert-warning" role="alert">
+        {{ feedback_message }}
+      </div>
+    {% endif %}
     <div>
       <h2>Состояние Задачи:</h2>
       <br>

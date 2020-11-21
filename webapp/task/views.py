@@ -14,6 +14,8 @@ from webapp.db import (
     IN_REVIEW,
     DONE,
     )
+from webapp.errors import ValidationError
+import webapp.validators as validators
 
 blueprint = Blueprint('task', __name__)
 
@@ -51,8 +53,6 @@ def view_task(task_id):
     title = 'Просматриваем состояние Задачи'
 
     try:
-        validators.validate_form(form)
-
         task = Task.query.get(task_id)
         validators.validate_task_existence(
             task=task,
@@ -68,13 +68,13 @@ def view_task(task_id):
         )
     except ValidationError as e:
         return render_template(
-            'view_task.form.html',
+            'task/view_task.html',
             title=title,
             feedback_message=e.args[0]
         )
     else:
         return render_template(
-            'view_task.success.html',
+            'task/view_task.html',
             title=title,
             task=task_debug_info
         )
