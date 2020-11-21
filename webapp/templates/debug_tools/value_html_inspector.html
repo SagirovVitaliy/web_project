@@ -3,10 +3,10 @@
   Как использовать темплайты виджета value_html_inspector:
   В своём коде подключите
     {% set item_value = example_variable %}
-    {% include 'value_html_inspector.html' %}
+    {% include 'debug_tools/value_html_inspector.html' %}
   
   где example_variable - это значение, состояние которого вы хотите
   посмотреть.
 #}
-{% include 'value_html_inspector__styles.html' %}
-{% include 'value_html_inspector__value.html' %}
+{% include 'debug_tools/value_html_inspector__styles.html' %}
+{% include 'debug_tools/value_html_inspector__value.html' %}
