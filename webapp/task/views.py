@@ -83,15 +83,9 @@ def view_task(task_id):
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_review', methods=['GET', 'POST'])
 def move_task_to_in_review(task_id):
     '''Фрилансер двигает заказ со статуса 'in_work' на 'in_review'.'''
-    title = 'Тестируем task.status: in_work -> in_review'
-    form_url = url_for('task.move_task_to_in_review', task_id=task_id)
+    title = 'Фрилансер двигает заказ со статуса in_work на in_review'
 
-    allowed_statuses = [ IN_REVIEW ]
-    status_list = TaskStatus.query.filter(TaskStatus.id.in_(allowed_statuses))
-
-    form = ChangeTaskStatusForm()
-    form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
-    form.status.choices = [(g.id, g.status) for g in status_list]
+    form = SimpleSubmitForm()
 
     if request.method == 'GET':
 
