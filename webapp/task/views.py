@@ -336,8 +336,10 @@ def dismiss_confirmed_freelancer_from_task(task_id):
     '''Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'''
     title = 'Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'
     form_url = url_for('task.dismiss_confirmed_freelancer_from_task', task_id=task_id)
+    call_to_action_text = 'Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите отцепить от Задачи'
 
-    form = DismissFreelancerFromTaskForm()
+    form = SimpleConfirmForm()
+    freelancer_choises = []
 
     try:
         task = Task.query.get(task_id)
@@ -346,18 +348,18 @@ def dismiss_confirmed_freelancer_from_task(task_id):
         # Подготовить form.user_id.choices.
         user_id = task.freelancer;
         user = User.query.get(user_id)
-        form.user_id.choices = []
         if not user == None:
-            form.user_id.choices = [[user.id, user.user_name]]
+            freelancer_choises = [user]
 
         if request.method == 'GET':
 
             return render_template(
                 'task/dismiss_freelancer_from_task.form.html',
                 title=title,
+                call_to_action_text=call_to_action_text,
                 form=form,
                 form_url=form_url,
-                feedback_message='Выберите Фрилансера-Исполнителя которого вы хотите отцепить от Задачи'
+                freelancer_choises=freelancer_choises
             )
 
         elif request.method == 'POST':
@@ -400,6 +402,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                 return render_template(
                     'task/dismiss_freelancer_from_task.success.html',
                     title=title,
+                    call_to_action_text=call_to_action_text,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
                 )
@@ -408,8 +411,10 @@ def dismiss_confirmed_freelancer_from_task(task_id):
         return render_template(
             'task/dismiss_freelancer_from_task.form.html',
             title=title,
+            call_to_action_text=call_to_action_text,
             form=form,
             form_url=form_url,
+            freelancer_choises=freelancer_choises,
             feedback_message=e.args[0]
         )
 
@@ -418,34 +423,40 @@ def dismiss_confirmed_freelancer_from_task(task_id):
 def dismiss_responded_freelancer_from_task(task_id):
     '''Заказчик требует отцепить Предв. Отклик. Фрилансера от Задачи
     
-    Заказчик требует отцепить Предварительно Откликнувшихся Фрилансера от Задачи
+    Заказчик требует отцепить Предварительно Откликнувшихся Фрилансеров от Задачи
     '''
 
-    title = 'Заказчик требует отцепить Предварительно Откликнувшихся Фрилансера от Задачи'
+    title = 'Заказчик требует отцепить Предварительно Откликнувшихся Фрилансеров от Задачи'
     form_url = url_for('task.dismiss_responded_freelancer_from_task', task_id=task_id)
+    call_to_action_text = 'Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите отцепить от Задачи'
 
-    form = DismissFreelancerFromTaskForm()
+    form = SimpleConfirmForm()
+    freelancer_choises = []
 
     try:
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
 
         # Подготовить form.user_id.choices.
-        freelancers = task.freelancers_who_responded.filter(
+        def wrap_user_in_meta(user):
+            return {
+                'user': user,
+                'id': user.id,
+                'url': f'/freelancers/{user.id}',
+            }
+        freelancer_choises = task.freelancers_who_responded.filter(
             User.role == FREELANCER,
-        )
-        form.user_id.choices = []
-        if not freelancers == None:
-            form.user_id.choices = [(g.id, g.user_name) for g in freelancers]
+        ).all()
 
         if request.method == 'GET':
 
             return render_template(
                 'task/dismiss_freelancer_from_task.form.html',
                 title=title,
+                call_to_action_text=call_to_action_text,
                 form=form,
                 form_url=form_url,
-                feedback_message='Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите отцепить от Задачи'
+                freelancer_choises=freelancer_choises
             )
 
         elif request.method == 'POST':
@@ -490,6 +501,7 @@ def dismiss_responded_freelancer_from_task(task_id):
                 return render_template(
                     'task/dismiss_freelancer_from_task.success.html',
                     title=title,
+                    call_to_action_text=call_to_action_text,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
                 )
@@ -498,7 +510,9 @@ def dismiss_responded_freelancer_from_task(task_id):
         return render_template(
             'task/dismiss_freelancer_from_task.form.html',
             title=title,
+            call_to_action_text=call_to_action_text,
             form=form,
             form_url=form_url,
+            freelancer_choises=freelancer_choises,
             feedback_message=e.args[0]
         )
