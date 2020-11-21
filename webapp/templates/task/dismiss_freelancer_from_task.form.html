@@ -33,24 +33,28 @@
     {% endwith %}
     <form action="{{ form_url }}" method="POST">
       {{ form.hidden_tag() }}
-      <div class="form-group">
-        {{ form.task_id.label }}<br>
-        {{ form.task_id() }}
-        {% for error in form.task_id.errors %}
-        <div class="alert alert-warning" role="alert">
-          {{ error }}
+      {% if form.task_id is defined %}
+        <div class="form-group">
+          {{ form.task_id.label }}<br>
+          {{ form.task_id() }}
+          {% for error in form.task_id.errors %}
+          <div class="alert alert-warning" role="alert">
+            {{ error }}
+          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
-      <div class="form-group">
-        {{ form.user_id.label }}<br>
-        {{ form.user_id() }}
-        {% for error in form.user_id.errors %}
-        <div class="alert alert-warning" role="alert">
-          {{ error }}
+      {% endif %}
+      {% if form.user_id is defined %}
+        <div class="form-group">
+          {{ form.user_id.label }}<br>
+          {{ form.user_id() }}
+          {% for error in form.user_id.errors %}
+          <div class="alert alert-warning" role="alert">
+            {{ error }}
+          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
+      {% endif %}
       <div>
         <br>
         {{ form.submit }}

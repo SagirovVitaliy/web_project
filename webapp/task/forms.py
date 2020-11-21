@@ -22,7 +22,6 @@ class CreateTaskForm(FlaskForm):
 
 # TODO: check if it's even required.
 class DismissFreelancerFromTaskForm(FlaskForm):
-    task_id = SelectField('Выбрать задачу', choices=[], validators=[DataRequired()])
     user_id = SelectField('Выбрать Фрилансера', choices=[], validators=[DataRequired()])
     submit = SubmitField('Отцепить!')
 

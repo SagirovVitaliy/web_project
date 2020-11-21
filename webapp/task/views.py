@@ -66,10 +66,7 @@ def view_task(task_id):
 
     try:
         task = Task.query.get(task_id)
-        validators.validate_task_existence(
-            task=task,
-            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
-        )
+        validators.validate_task_existence(task=task)
 
         # Сделать свежий снимок Задачи для дебага.
         task_debug_info = get_task_debug_info(task_id)
@@ -97,10 +94,7 @@ def move_task_to_in_review(task_id):
 
     try:
         task = Task.query.get(task_id)
-        validators.validate_task_existence(
-            task=task,
-            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
-        )
+        validators.validate_task_existence(task=task)
 
         if request.method == 'GET':
 
@@ -159,10 +153,7 @@ def move_task_to_in_work(task_id):
 
     try:
         task = Task.query.get(task_id)
-        validators.validate_task_existence(
-            task=task,
-            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
-        )
+        validators.validate_task_existence(task=task)
 
         if request.method == 'GET':
 
@@ -221,10 +212,7 @@ def move_task_to_done(task_id):
 
     try:
         task = Task.query.get(task_id)
-        validators.validate_task_existence(
-            task=task,
-            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
-        )
+        validators.validate_task_existence(task=task)
 
         if request.method == 'GET':
 
@@ -283,10 +271,7 @@ def cancel_task(task_id):
 
     try:
         task = Task.query.get(task_id)
-        validators.validate_task_existence(
-            task=task,
-            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
-        )
+        validators.validate_task_existence(task=task)
 
         if request.method == 'GET':
 
@@ -347,80 +332,88 @@ def cancel_task(task_id):
 
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_confirmed_freelancer_from_task', methods=['GET', 'POST'])
-def dismiss_confirmed_freelancer_from_task():
+def dismiss_confirmed_freelancer_from_task(task_id):
     '''Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'''
     title = 'Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'
     form_url = url_for('task.dismiss_confirmed_freelancer_from_task', task_id=task_id)
 
     form = DismissFreelancerFromTaskForm()
-    form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
-    form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
 
-    if request.method == 'GET':
+    try:
+        # form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
+        
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(task=task)
 
-        return render_template(
-            'dismiss_freelancer_from_task.form.html',
-            title=title,
-            form=form,
-            form_url=form_url
-        )
+        user_id = task.freelancer;
+        user = User.query.get(user_id)
+        
+        form.user_id.choices = []
+        if not user == None:
+            form.user_id.choices = [[user.id, user.user_name]]
 
-    elif request.method == 'POST':
+        if request.method == 'GET':
 
-        try:
-            validators.validate_form(form)
-
-            task_id = request.form.get('task_id');
-            user_id = request.form.get('user_id');
-
-            task = Task.query.get(task_id)
-            validators.validate_task_existence(task)
-
-            user = User.query.get(user_id)
-            validators.validate_user_existence(user)
-            validators.validate_if_user_is_freelancer(user)
-            validators.is_user_connected_to_task_as_confirmed_freelancer(
-                user=user, task=task
-            )
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info1 = get_task_debug_info(task_id)
-
-            # Отцепить от Задачи: Фрилансера-Подтверждённого Исполнителя.
-            task.freelancer = None
-            if (
-                    task.status == IN_WORK or
-                    task.status == IN_REVIEW
-                ):
-                # Если это был удалён последний Фрилансер в списке; и
-                # если задача - в Статусе когда нельзя делать
-                # последующие шаги к Главной Цели, не имея Фрилансеров в
-                # этом списке, тогда надо перевести Задачу в Статус
-                # 'created'.
-                task.status = CREATED
-            db.session.commit()
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info2 = get_task_debug_info(task_id)
-        except ValidationError as e:
-            db.session.rollback()
             return render_template(
-                'dismiss_freelancer_from_task.form.html',
+                'task/dismiss_freelancer_from_task.form.html',
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message=e.args[0]
+                feedback_message='Выберите Фрилансера-Исполнителя которого вы хотите отцепить от Задачи'
             )
-        except:
-            db.session.rollback()
-            raise
-        else:
-            return render_template(
-                'dismiss_freelancer_from_task.success.html',
-                title=title,
-                task_before=task_debug_info1,
-                task_after=task_debug_info2
-            )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                user_id = request.form.get('user_id');
+
+                user = User.query.get(user_id)
+                validators.validate_user_existence(user)
+                validators.validate_if_user_is_freelancer(user)
+                validators.is_user_connected_to_task_as_confirmed_freelancer(
+                    user=user, task=task
+                )
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                # Отцепить от Задачи: Фрилансера-Подтверждённого Исполнителя.
+                task.freelancer = None
+                if (
+                        task.status == IN_WORK or
+                        task.status == IN_REVIEW
+                    ):
+                    # Если это был удалён последний Фрилансер в списке; и
+                    # если задача - в Статусе когда нельзя делать
+                    # последующие шаги к Главной Цели, не имея Фрилансеров в
+                    # этом списке, тогда надо перевести Задачу в Статус
+                    # 'created'.
+                    task.status = CREATED
+                db.session.commit()
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return render_template(
+                    'task/dismiss_freelancer_from_task.success.html',
+                    title=title,
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
+                )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/dismiss_freelancer_from_task.form.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+        )
 
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_responded_freelancer_from_task', methods=['GET', 'POST'])
@@ -434,13 +427,13 @@ def dismiss_responded_freelancer_from_task(task_id):
     form_url = url_for('task.dismiss_responded_freelancer_from_task', task_id=task_id)
 
     form = DismissFreelancerFromTaskForm()
-    form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
+
     form.user_id.choices = [(g.id, g.user_name) for g in User.query.all()]
 
     if request.method == 'GET':
 
         return render_template(
-            'dismiss_freelancer_from_task.form.html',
+            'task/dismiss_freelancer_from_task.form.html',
             title=title,
             form=form,
             form_url=form_url
@@ -451,7 +444,6 @@ def dismiss_responded_freelancer_from_task(task_id):
         try:
             validators.validate_form(form)
 
-            task_id = request.form.get('task_id');
             user_id = request.form.get('user_id');
 
             task = Task.query.get(task_id)
@@ -488,7 +480,7 @@ def dismiss_responded_freelancer_from_task(task_id):
         except ValidationError as e:
             db.session.rollback()
             return render_template(
-                'dismiss_freelancer_from_task.form.html',
+                'task/dismiss_freelancer_from_task.form.html',
                 title=title,
                 form=form,
                 form_url=form_url,
@@ -499,7 +491,7 @@ def dismiss_responded_freelancer_from_task(task_id):
             raise
         else:
             return render_template(
-                'dismiss_freelancer_from_task.success.html',
+                'task/dismiss_freelancer_from_task.success.html',
                 title=title,
                 task_before=task_debug_info1,
                 task_after=task_debug_info2
