@@ -275,87 +275,71 @@ def cancel_task(task_id):
     title = 'Заказчик требует отменить Задачу'
     form_url = url_for('task.cancel_task', task_id=task_id)
 
-    allowed_status_codes = [ 'stopped' ]
-    status_list = TaskStatus.query.filter(TaskStatus.status.in_(allowed_status_codes))
+    form = SimpleConfirmForm()
 
-    form = ChangeTaskStatusForm()
-    form.task_id.choices = [(g.id, g.task_name) for g in Task.query.all()]
-    form.status.choices = [(g.id, g.status) for g in status_list]
-
-    if request.method == 'GET':
-
-        return render_template(
-            'change_task_status.form.html',
-            title=title,
-            form=form,
-            form_url=form_url
+    try:
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(
+            task=task,
+            failure_feedback='Указанная в запросе Задача не существует. Попробуйте изменить критерий поиска и попровать снова.'
         )
 
-    elif request.method == 'POST':
+        if request.method == 'GET':
 
-        try:
-            validators.validate_form(form)
-
-            current_task_id = request.form.get('task_id');
-            new_status_id = request.form.get('status');
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info1 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
-
-            task = Task.query.get(current_task_id)
-            validators.validate_task_existence(task)
-
-            # Внести изменения в задачу.
-            task.status = new_status_id
-            db.session.commit()
-
-            # Отцепить от Задачи: Фрилансера-Подтверждённого Исполнителя.
-            user = User.query.get(task.freelancer)
-            validators.validate_user_existence(user)
-            validators.validate_if_user_is_freelancer(user)
-            validators.is_user_connected_to_task_as_confirmed_freelancer(
-                user=user, task=task
-            )
-
-            # Отцепить от Задачи: всех Предваритально Откликнувшихся
-            # Фрилансеров.
-            freelancers = task.freelancers_who_responded.all()
-            task.freelancers_who_responded = task.freelancers_who_responded.filter(
-                User.role != FREELANCER
-            )
-            db.session.commit()
-
-            # Сделать свежий снимок Задачи для дебага.
-            task_debug_info2 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
-        except ValidationError as e:
-            db.session.rollback()
             return render_template(
-                'change_task_status.form.html',
+                'task/change_task_status.form.html',
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message=e.args[0]
+                feedback_message='Вы действительно хотите отменить эту задачу?'
             )
-        except:
-            db.session.rollback()
-            raise
-        else:
-            return render_template(
-                'change_task_status.success.html',
-                title=title,
-                task_before=task_debug_info1,
-                task_after=task_debug_info2
-            )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                status_id = STOPPED;
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                # Внести изменения в задачу.
+                task.status = status_id
+                db.session.commit()
+
+                # Отцепить от Задачи: Фрилансера-Подтверждённого Исполнителя.
+                task.freelancer = None
+
+                # Отцепить от Задачи: всех Предваритально Откликнувшихся
+                # Фрилансеров.
+                freelancers = task.freelancers_who_responded.all()
+                task.freelancers_who_responded = task.freelancers_who_responded.filter(
+                    User.role != FREELANCER
+                )
+                db.session.commit()
+
+                # Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return render_template(
+                    'task/change_task_status.success.html',
+                    title=title,
+                    task_before=task_debug_info1,
+                    task_after=task_debug_info2
+                )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/change_task_status.form.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+        )
 
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_confirmed_freelancer_from_task', methods=['GET', 'POST'])
@@ -403,12 +387,7 @@ def dismiss_confirmed_freelancer_from_task():
             )
 
             # Сделать свежий снимок Задачи для дебага.
-            task_debug_info1 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
+            task_debug_info1 = get_task_debug_info(task_id)
 
             # Отцепить от Задачи: Фрилансера-Подтверждённого Исполнителя.
             task.freelancer = None
@@ -425,12 +404,7 @@ def dismiss_confirmed_freelancer_from_task():
             db.session.commit()
 
             # Сделать свежий снимок Задачи для дебага.
-            task_debug_info2 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
+            task_debug_info2 = get_task_debug_info(task_id)
         except ValidationError as e:
             db.session.rollback()
             return render_template(
@@ -497,12 +471,7 @@ def dismiss_responded_freelancer_from_task(task_id):
             )
 
             # Сделать свежий снимок Задачи для дебага.
-            task_debug_info1 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
+            task_debug_info1 = get_task_debug_info(task_id)
 
             # Отцепить от Задачи: Предваритально Откликнувшегося Фрилансера.
             freelancers = task.freelancers_who_responded.filter(
@@ -521,12 +490,7 @@ def dismiss_responded_freelancer_from_task(task_id):
             db.session.commit()
 
             # Сделать свежий снимок Задачи для дебага.
-            task_debug_info2 = (
-                Task
-                .query
-                .get(current_task_id)
-                .generate_level_2_debug_dictionary()
-            )
+            task_debug_info2 = get_task_debug_info(task_id)
         except ValidationError as e:
             db.session.rollback()
             return render_template(
