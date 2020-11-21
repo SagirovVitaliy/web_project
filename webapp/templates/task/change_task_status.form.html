@@ -33,28 +33,6 @@
     {% endwith %}
     <form action="{{ form_url }}" method="POST">
       {{ form.hidden_tag() }}
-      {% if task_id is defined %}
-        <div class="form-group">
-          {{ form.task_id.label }}<br>
-          {{ form.task_id() }}
-          {% for error in form.task_id.errors %}
-          <div class="alert alert-warning" role="alert">
-            {{ error }}
-          </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-      {% if task_id is defined %}
-        <div class="form-group">
-          {{ form.status.label }}<br>
-          {{ form.status() }}
-          {% for error in form.status.errors %}
-          <div class="alert alert-warning" role="alert">
-            {{ error }}
-          </div>
-          {% endfor %}
-        </div>
-      {% endif %}
       <div>
         <br>
         {{ form.submit }}
