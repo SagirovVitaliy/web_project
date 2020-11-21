@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from webapp.sign.forms import LoginForm, RegistrationForm
-from webapp.db import User, UserRole
+from webapp.db import db, User, UserRole
 from flask_login import login_user, logout_user, current_user
 from webapp.db import (CUSTOMER, FREELANCER)
 
