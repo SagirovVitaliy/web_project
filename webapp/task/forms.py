@@ -20,7 +20,6 @@ class CreateTaskForm(FlaskForm):
     submit = SubmitField('Создать проект')
 
 
-# TODO: check if it's even required.
 class DismissFreelancerFromTaskForm(FlaskForm):
     user_id = SelectField('Выбрать Фрилансера', choices=[], validators=[DataRequired()])
     submit = SubmitField('Отцепить!')
