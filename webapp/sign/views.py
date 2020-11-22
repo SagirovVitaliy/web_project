@@ -83,5 +83,43 @@ def sign_out():
 @blueprint.route('/', methods=['GET', 'POST'])
 def index():
     title = 'Главная страница'
+    demo_links = [
+        {
+            'url': url_for('task.view_task', task_id=3),
+            'label': '〰😶 Просмотреть Задачу номер 3.',
+        },
+        {
+            'url': url_for('task.view_task', task_id=4),
+            'label': '〰😶 Просмотреть Задачу номер 4.',
+        },
+        {
+            'url': url_for('task.move_task_to_in_review', task_id=4),
+            'label': '➕😁 Двинуть Задачу номер 4 в статус in_review.',
+        },
+        {
+            'url': url_for('task.move_task_to_in_work', task_id=4),
+            'label': '➕😁 Двинуть Задачу номер 4 в статус in_work.',
+        },
+        {
+            'url': url_for('task.move_task_to_done', task_id=4),
+            'label': '➕😁 Двинуть Задачу номер 4 в статус done.',
+        },
+        {
+            'url': url_for('task.cancel_task', task_id=4),
+            'label': '➖💀 Отменить Задачу номер 4.',
+        },
+        {
+            'url': url_for('task.dismiss_confirmed_freelancer_from_task', task_id=4),
+            'label': '➖💀 Отцепить от Задачи номер 4, Фрилансера-Исполнителя номер...',
+        },
+        {
+            'url': url_for('task.dismiss_responded_freelancer_from_task', task_id=3),
+            'label': '➖💀 Отцепить от Задачи номер 3, Предварительно Откликнувшегося Фрилансера номер...',
+        },
+    ]
 
-    return render_template('sign/index.html', title=title)
+    return render_template(
+        'sign/index.html',
+        title=title,
+        demo_links=demo_links
+        )

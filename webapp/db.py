@@ -189,7 +189,7 @@ class User(db.Model, UserMixin):
         отсутствие петли взаимных запусков.
         '''
         packet = self.generate_level_1_debug_dictionary()
-        packet['responded_to_tasks'] = self.responded_to_tasks.all()
+        packet['responded_to_tasks'] = self.responded_to_tasks
         return packet
 
 
