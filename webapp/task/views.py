@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from webapp.db import db, Task, TaskStatus, User
-from flask_login import login_required
+from flask_login import login_required, current_user
+import webapp.task.access_rules as task_access_rules
 from webapp.task.forms import (
     CreateTaskForm,
     SimpleConfirmForm,
@@ -18,7 +19,7 @@ from webapp.db import (
     IN_REVIEW,
     DONE,
     )
-from webapp.errors import ValidationError
+from webapp.errors import OperationPermissionError, ValidationError 
 import webapp.validators as validators
 
 blueprint = Blueprint('task', __name__)
@@ -68,7 +69,7 @@ def view_task(task_id):
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
 
-        # Сделать свежий снимок Задачи для дебага.
+        # DEBUG: Сделать свежий снимок Задачи для дебага.
         task_debug_info = get_task_debug_info(task_id)
     except ValidationError as e:
         return render_template(
@@ -87,7 +88,7 @@ def view_task(task_id):
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_review', methods=['GET', 'POST'])
 def move_task_to_in_review(task_id):
     '''Фрилансер требует двинуть заказ со статуса IN_WORK на IN_REVIEW.'''
-    title = 'Фрилансер требует передать заказ на ревью Заказчику'
+    title = 'Передать заказ на ревью Заказчику'
     form_url = url_for('task.move_task_to_in_review', task_id=task_id)
 
     form = SimpleConfirmForm()
@@ -95,6 +96,16 @@ def move_task_to_in_review(task_id):
     try:
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
+
+        task_access_rules.current_user_must_be_connected_to_task_as_confirmed_freelancer(
+            current_user=current_user,
+            task=task
+            )
+        if not task.status == IN_WORK:
+            raise OperationPermissionError(
+                'Эту операцию можно применять только к Задачам ' +
+                'со статусом "В Работе"'
+                )
 
         if request.method == 'GET':
 
@@ -104,14 +115,14 @@ def move_task_to_in_review(task_id):
                 form=form,
                 form_url=form_url,
                 feedback_message='Вы действительно хотите передать эту Задачу на ревью?'
-            )
+                )
 
         elif request.method == 'POST':
 
             try:
                 validators.validate_form(form)
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info1 = get_task_debug_info(task_id)
 
                 status_id = IN_REVIEW;
@@ -120,7 +131,7 @@ def move_task_to_in_review(task_id):
                 task.status = status_id
                 db.session.commit()
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
@@ -131,7 +142,15 @@ def move_task_to_in_review(task_id):
                     title=title,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
-                )
+                    )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -140,13 +159,13 @@ def move_task_to_in_review(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-        )
+            )
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_work', methods=['GET', 'POST'])
 def move_task_to_in_work(task_id):
     '''Заказчик требует двинуть Задачу со статуса IN_REVIEW в IN_WORK'''
-    title = 'Заказчик требует передать Задачу назад на доработку к Фрилансеру'
+    title = 'Передать Задачу назад на доработку к Фрилансеру'
     form_url = url_for('task.move_task_to_in_work', task_id=task_id)
 
     form = SimpleConfirmForm()
@@ -154,6 +173,16 @@ def move_task_to_in_work(task_id):
     try:
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
+
+        task_access_rules.current_user_must_be_connected_to_task_as_customer(
+            current_user=current_user,
+            task=task
+            )
+        if not task.status == IN_REVIEW:
+            raise OperationPermissionError(
+                'Эту операцию можно применять только к Задачам ' +
+                'со статусом "В Ревью"'
+                )
 
         if request.method == 'GET':
 
@@ -163,23 +192,21 @@ def move_task_to_in_work(task_id):
                 form=form,
                 form_url=form_url,
                 feedback_message='Вы действительно хотите передать эту Задачу назад на доработку?'
-            )
+                )
 
         elif request.method == 'POST':
 
             try:
                 validators.validate_form(form)
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info1 = get_task_debug_info(task_id)
 
-                status_id = IN_WORK;
-
                 # Внести изменения в Задачу.
-                task.status = status_id
+                task.status = IN_WORK
                 db.session.commit()
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
@@ -190,7 +217,15 @@ def move_task_to_in_work(task_id):
                     title=title,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
-                )
+                    )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -199,13 +234,13 @@ def move_task_to_in_work(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-        )
+            )
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_done', methods=['GET', 'POST'])
 def move_task_to_done(task_id):
     '''Заказчик требует двинуть Задачу со статуса IN_REVIEW в DONE'''
-    title = 'Заказчик требует закочить Задачу как успешно завершённую'
+    title = 'Закочить Задачу как успешно завершённую'
     form_url = url_for('task.move_task_to_done', task_id=task_id)
 
     form = SimpleConfirmForm()
@@ -213,6 +248,16 @@ def move_task_to_done(task_id):
     try:
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
+
+        task_access_rules.current_user_must_be_connected_to_task_as_customer(
+            current_user=current_user,
+            task=task
+            )
+        if not task.status == IN_REVIEW:
+            raise OperationPermissionError(
+                'Эту операцию можно применять только к Задачам ' +
+                'со статусом "В Ревью"'
+                )
 
         if request.method == 'GET':
 
@@ -222,23 +267,21 @@ def move_task_to_done(task_id):
                 form=form,
                 form_url=form_url,
                 feedback_message='Вы действительно хотите закончить эту Задачу как успешно завершённую?'
-            )
+                )
 
         elif request.method == 'POST':
 
             try:
                 validators.validate_form(form)
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info1 = get_task_debug_info(task_id)
 
-                status_id = DONE;
-
                 # Внести изменения в Задачу.
-                task.status = status_id
+                task.status = DONE
                 db.session.commit()
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
@@ -249,7 +292,15 @@ def move_task_to_done(task_id):
                     title=title,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
-                )
+                    )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -258,13 +309,13 @@ def move_task_to_done(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-        )
+            )
 
 
 @blueprint.route('/tasks/<int:task_id>/cancel_task', methods=['GET', 'POST'])
 def cancel_task(task_id):
     '''Заказчик требует двинуть Задачу в статус STOPPED'''
-    title = 'Заказчик требует отменить Задачу'
+    title = 'Отменить Задачу'
     form_url = url_for('task.cancel_task', task_id=task_id)
 
     form = SimpleConfirmForm()
@@ -272,6 +323,16 @@ def cancel_task(task_id):
     try:
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
+
+        task_access_rules.current_user_must_be_connected_to_task_as_customer(
+            current_user=current_user,
+            task=task
+            )
+        if task.status == STOPPED:
+            raise OperationPermissionError(
+                'Эту операцию нельзя применять к Задачам ' +
+                'со статусом "Остановленная"'
+                )
 
         if request.method == 'GET':
 
@@ -288,13 +349,11 @@ def cancel_task(task_id):
             try:
                 validators.validate_form(form)
 
-                status_id = STOPPED;
-
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info1 = get_task_debug_info(task_id)
 
                 # Внести изменения в задачу.
-                task.status = status_id
+                task.status = STOPPED
                 db.session.commit()
 
                 # Отцепить от Задачи: Фрилансера-Подтверждённого Исполнителя.
@@ -308,7 +367,7 @@ def cancel_task(task_id):
                 )
                 db.session.commit()
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
@@ -320,6 +379,14 @@ def cancel_task(task_id):
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
                 )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+        )
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -334,7 +401,7 @@ def cancel_task(task_id):
 @blueprint.route('/tasks/<int:task_id>/dismiss_confirmed_freelancer_from_task', methods=['GET', 'POST'])
 def dismiss_confirmed_freelancer_from_task(task_id):
     '''Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'''
-    title = 'Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'
+    title = 'Отцепить Фрилансера-Исполнителя от Задачи'
     form_url = url_for('task.dismiss_confirmed_freelancer_from_task', task_id=task_id)
     call_to_action_text = 'Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите отцепить от Задачи'
 
@@ -344,6 +411,11 @@ def dismiss_confirmed_freelancer_from_task(task_id):
     try:
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
+
+        task_access_rules.current_user_must_be_connected_to_task_as_customer(
+            current_user=current_user,
+            task=task
+            )
 
         # Подготовить form.user_id.choices.
         user_id = task.freelancer;
@@ -360,7 +432,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                 form=form,
                 form_url=form_url,
                 freelancer_choices=freelancer_choices
-            )
+                )
 
         elif request.method == 'POST':
 
@@ -374,9 +446,9 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                 validators.validate_if_user_is_freelancer(user)
                 validators.is_user_connected_to_task_as_confirmed_freelancer(
                     user=user, task=task
-                )
+                    )
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info1 = get_task_debug_info(task_id)
 
                 # Отцепить от Задачи: Фрилансера-Подтверждённого Исполнителя.
@@ -393,7 +465,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                     task.status = PUBLISHED
                 db.session.commit()
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
@@ -405,7 +477,15 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                     call_to_action_text=call_to_action_text,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
-                )
+                    )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -416,7 +496,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
             form_url=form_url,
             freelancer_choices=freelancer_choices,
             feedback_message=e.args[0]
-        )
+            )
 
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_responded_freelancer_from_task', methods=['GET', 'POST'])
@@ -426,7 +506,7 @@ def dismiss_responded_freelancer_from_task(task_id):
     Заказчик требует отцепить Предварительно Откликнувшихся Фрилансеров от Задачи
     '''
 
-    title = 'Заказчик требует отцепить Предварительно Откликнувшихся Фрилансеров от Задачи'
+    title = 'Отцепить Предварительно Откликнувшихся Фрилансеров от Задачи'
     form_url = url_for('task.dismiss_responded_freelancer_from_task', task_id=task_id)
     call_to_action_text = 'Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите отцепить от Задачи'
 
@@ -437,13 +517,11 @@ def dismiss_responded_freelancer_from_task(task_id):
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
 
-        # Подготовить form.user_id.choices.
-        def wrap_user_in_meta(user):
-            return {
-                'user': user,
-                'id': user.id,
-                'url': f'/freelancers/{user.id}',
-            }
+        task_access_rules.current_user_must_be_connected_to_task_as_customer(
+            current_user=current_user,
+            task=task
+            )
+
         freelancer_choices = task.freelancers_who_responded.filter(
             User.role == FREELANCER,
         ).all()
@@ -457,7 +535,7 @@ def dismiss_responded_freelancer_from_task(task_id):
                 form=form,
                 form_url=form_url,
                 freelancer_choices=freelancer_choices
-            )
+                )
 
         elif request.method == 'POST':
 
@@ -471,16 +549,16 @@ def dismiss_responded_freelancer_from_task(task_id):
                 validators.validate_if_user_is_freelancer(user)
                 validators.is_user_connected_to_task_as_responded_freelancer(
                     user=user, task=task
-                )
+                    )
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info1 = get_task_debug_info(task_id)
 
                 # Отцепить от Задачи: Предваритально Откликнувшегося Фрилансера.
                 freelancers = task.freelancers_who_responded.filter(
                     User.role == FREELANCER,
                     User.id != user_id
-                )
+                    )
                 task.freelancers_who_responded = freelancers
                 if task.status == FREELANCERS_DETECTED:
                     if not freelancers.count() > 0:
@@ -492,7 +570,7 @@ def dismiss_responded_freelancer_from_task(task_id):
                         task.status = PUBLISHED
                 db.session.commit()
 
-                # Сделать свежий снимок Задачи для дебага.
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
@@ -504,7 +582,15 @@ def dismiss_responded_freelancer_from_task(task_id):
                     call_to_action_text=call_to_action_text,
                     task_before=task_debug_info1,
                     task_after=task_debug_info2
-                )
+                    )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -515,4 +601,4 @@ def dismiss_responded_freelancer_from_task(task_id):
             form_url=form_url,
             freelancer_choices=freelancer_choices,
             feedback_message=e.args[0]
-        )
+            )
