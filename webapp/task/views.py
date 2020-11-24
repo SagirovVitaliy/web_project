@@ -125,10 +125,8 @@ def move_task_to_in_review(task_id):
                 # DEBUG: Сделать свежий снимок Задачи для дебага.
                 task_debug_info1 = get_task_debug_info(task_id)
 
-                status_id = IN_REVIEW;
-
                 # Внести изменения в Задачу.
-                task.status = status_id
+                task.status = IN_REVIEW
                 db.session.commit()
 
                 # DEBUG: Сделать свежий снимок Задачи для дебага.
