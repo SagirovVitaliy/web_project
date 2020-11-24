@@ -86,6 +86,7 @@ def view_task(task_id):
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_review', methods=['GET', 'POST'])
+@login_required
 def move_task_to_in_review(task_id):
     '''Фрилансер требует двинуть заказ со статуса IN_WORK на IN_REVIEW.'''
     title = 'Передать заказ на ревью Заказчику'
@@ -101,11 +102,10 @@ def move_task_to_in_review(task_id):
             current_user=current_user,
             task=task
             )
-        if not task.status == IN_WORK:
-            raise OperationPermissionError(
-                'Эту операцию можно применять только к Задачам ' +
-                'со статусом "В Работе"'
-                )
+        task_access_rules.task_must_be_in_one_of_statuses(
+            task=task,
+            task_status_ids = [IN_WORK]
+            )
 
         if request.method == 'GET':
 
@@ -163,6 +163,7 @@ def move_task_to_in_review(task_id):
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_work', methods=['GET', 'POST'])
+@login_required
 def move_task_to_in_work(task_id):
     '''Заказчик требует двинуть Задачу со статуса IN_REVIEW в IN_WORK'''
     title = 'Передать Задачу назад на доработку к Фрилансеру'
@@ -178,11 +179,10 @@ def move_task_to_in_work(task_id):
             current_user=current_user,
             task=task
             )
-        if not task.status == IN_REVIEW:
-            raise OperationPermissionError(
-                'Эту операцию можно применять только к Задачам ' +
-                'со статусом "В Ревью"'
-                )
+        task_access_rules.task_must_be_in_one_of_statuses(
+            task=task,
+            task_status_ids = [IN_REVIEW]
+            )
 
         if request.method == 'GET':
 
@@ -238,6 +238,7 @@ def move_task_to_in_work(task_id):
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_done', methods=['GET', 'POST'])
+@login_required
 def move_task_to_done(task_id):
     '''Заказчик требует двинуть Задачу со статуса IN_REVIEW в DONE'''
     title = 'Закочить Задачу как успешно завершённую'
@@ -253,11 +254,10 @@ def move_task_to_done(task_id):
             current_user=current_user,
             task=task
             )
-        if not task.status == IN_REVIEW:
-            raise OperationPermissionError(
-                'Эту операцию можно применять только к Задачам ' +
-                'со статусом "В Ревью"'
-                )
+        task_access_rules.task_must_be_in_one_of_statuses(
+            task=task,
+            task_status_ids = [IN_REVIEW]
+            )
 
         if request.method == 'GET':
 
@@ -313,6 +313,7 @@ def move_task_to_done(task_id):
 
 
 @blueprint.route('/tasks/<int:task_id>/cancel_task', methods=['GET', 'POST'])
+@login_required
 def cancel_task(task_id):
     '''Заказчик требует двинуть Задачу в статус STOPPED'''
     title = 'Отменить Задачу'
@@ -328,11 +329,10 @@ def cancel_task(task_id):
             current_user=current_user,
             task=task
             )
-        if task.status == STOPPED:
-            raise OperationPermissionError(
-                'Эту операцию нельзя применять к Задачам ' +
-                'со статусом "Остановленная"'
-                )
+        task_access_rules.task_must_not_be_in_one_of_statuses(
+            task=task,
+            task_status_ids = [STOPPED]
+            )
 
         if request.method == 'GET':
 
@@ -399,6 +399,7 @@ def cancel_task(task_id):
 
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_confirmed_freelancer_from_task', methods=['GET', 'POST'])
+@login_required
 def dismiss_confirmed_freelancer_from_task(task_id):
     '''Заказчик требует отцепить Фрилансера-Исполнителя от Задачи'''
     title = 'Отцепить Фрилансера-Исполнителя от Задачи'
@@ -500,6 +501,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
 
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_responded_freelancer_from_task', methods=['GET', 'POST'])
+@login_required
 def dismiss_responded_freelancer_from_task(task_id):
     '''Заказчик требует отцепить Предв. Отклик. Фрилансера от Задачи
     

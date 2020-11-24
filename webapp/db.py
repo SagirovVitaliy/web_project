@@ -31,6 +31,18 @@ IN_REVIEW = 6
 DONE = 7
 
 
+def convert_task_status_id_to_label(task_status_id):
+    return {
+        CREATED: 'Создана',
+        PUBLISHED: 'Опубликована',
+        FREELANCERS_DETECTED: 'Заинтересовала Фрилансеров',
+        IN_WORK: 'В работе',
+        STOPPED: 'Остановлена',
+        IN_REVIEW: 'В ревью',
+        DONE: 'Успешно завершена',
+    }.get(task_status_id, '')
+
+
 def prettify(class_label, prop_line_list):
     props = ' '.join(prop_line_list)
     return f'<{class_label}: {props}>'
