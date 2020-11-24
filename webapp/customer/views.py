@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash
-from webapp.db import Task, TaskStatus, db, User
+from webapp.db import db, Task, TaskStatus, User
 from webapp.customer.decorators import customer_required
 from webapp.db import (CREATED, PUBLISHED, FREELANCERS_DETECTED, IN_WORK)
 

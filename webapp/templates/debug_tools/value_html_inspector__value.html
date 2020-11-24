@@ -3,7 +3,7 @@
   Как использовать темплайты виджета value_html_inspector:
   В своём коде подключите
     {% set item_value = example_variable %}
-    {% include 'value_html_inspector.html' %}
+    {% include 'debug_tools/value_html_inspector.html' %}
   
   где example_variable - это значение, состояние которого вы хотите
   посмотреть.
@@ -18,7 +18,7 @@
       <tr>
         <th class="value_html_inspector__dictionary_th">{{ key }}</th>
         <td>
-          {% include 'value_html_inspector__value.html' %}
+          {% include 'debug_tools/value_html_inspector__value.html' %}
         </td>
       </tr>
       {% endfor %}
@@ -31,7 +31,7 @@
       <tr>
         <th class="value_html_inspector__list_th">{{ loop.index0 }}</th>
         <td>
-          {% include 'value_html_inspector__value.html' %}
+          {% include 'debug_tools/value_html_inspector__value.html' %}
         </td>
       </tr>
       {% endfor %}
