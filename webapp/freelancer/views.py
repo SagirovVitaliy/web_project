@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for, request
 from webapp.db import db, Task, User
 from webapp.freelancer.decorators import freelancer_required
 from webapp.db import PUBLISHED, FREELANCERS_DETECTED, IN_WORK
+from flask_login import current_user
 
 blueprint = Blueprint('freelancer', __name__, url_prefix='/freelancer')
 
@@ -9,6 +10,9 @@ blueprint = Blueprint('freelancer', __name__, url_prefix='/freelancer')
 @blueprint.route('/<int:user_id>/', methods=['GET', 'POST'])
 @freelancer_required
 def view_tasks_for_fl(user_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Все актуальные заказы'
     tasks = Task.query.filter(Task.status.in_([PUBLISHED, FREELANCERS_DETECTED])).all()
 
@@ -18,6 +22,9 @@ def view_tasks_for_fl(user_id):
 @blueprint.route('/<int:user_id>/fl_task/<int:task_id>', methods=['GET', 'POST'])
 @freelancer_required
 def view_task_information(user_id, task_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Информация по заказы'
     task = Task.query.get(task_id)
     task_name = task.task_name
@@ -45,6 +52,9 @@ def view_task_information(user_id, task_id):
 @blueprint.route('/<int:user_id>/fl_in_work/', methods=['GET', 'POST'])
 @freelancer_required
 def view_tasks_in_work(user_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Все заказы в работе'
     tasks = Task.query.filter(Task.freelancer == user_id, Task.status == IN_WORK).all()
 

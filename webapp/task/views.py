@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from webapp.db import db, Task, TaskStatus, User
-from flask_login import login_required
+from flask_login import login_required, current_user
 from webapp.task.forms import (
     CreateTaskForm,
     SimpleConfirmForm,
@@ -35,6 +35,9 @@ def get_task_debug_info(task_id):
 @blueprint.route('/customer/<int:user_id>/create_task/', methods=['GET', 'POST'])
 @login_required
 def create_task(user_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Создание заказа'
     form = CreateTaskForm()
     status = TaskStatus.query.filter(TaskStatus.id == CREATED).one()

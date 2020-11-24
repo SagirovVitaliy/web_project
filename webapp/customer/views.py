@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, flash
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from webapp.db import db, Task, TaskStatus, User
 from webapp.customer.decorators import customer_required
 from webapp.db import (CREATED, PUBLISHED, FREELANCERS_DETECTED, IN_WORK)
+from flask_login import current_user
 
 blueprint = Blueprint('customer', __name__, url_prefix='/customer')
 
@@ -9,6 +10,9 @@ blueprint = Blueprint('customer', __name__, url_prefix='/customer')
 @blueprint.route('/<int:user_id>/', methods=['GET', 'POST'])
 @customer_required
 def view_created_tasks(user_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Все созданные заказы (статус created)'
     tasks = Task.query.filter(Task.customer == user_id, Task.status == CREATED).all()
 
@@ -18,6 +22,9 @@ def view_created_tasks(user_id):
 @blueprint.route('/<int:user_id>/published/', methods=['GET', 'POST'])
 @customer_required
 def view_published_tasks(user_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Все опубликованные заказы (статус published)'
     tasks = Task.query.filter(Task.customer == user_id, Task.status == PUBLISHED).all()
 
@@ -27,6 +34,9 @@ def view_published_tasks(user_id):
 @blueprint.route('/<int:user_id>/task/<int:task_id>/', methods=['GET', 'POST'])
 @customer_required
 def view_tasks(task_id, user_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Информация по заказу (здесь мы можем менять с created на published)'
     task = Task.query.get(task_id)
     task_name = task.task_name
@@ -53,6 +63,9 @@ def view_tasks(task_id, user_id):
 @blueprint.route('/<int:user_id>/freelancers_detected/', methods=['GET', 'POST'])
 @customer_required
 def view_freelancers_detected_task(user_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Все заказы, на которые откликнулись'
     tasks = Task.query.filter(Task.customer == user_id, Task.status == FREELANCERS_DETECTED).all()
 
@@ -62,6 +75,9 @@ def view_freelancers_detected_task(user_id):
 @blueprint.route('/<int:user_id>/ready_fl/<int:task_id>/', methods=['GET', 'POST'])
 @customer_required
 def view_ready_fl(user_id, task_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Все откликнувшиеся на заказ'
     task = Task.query.get(task_id)
     freelancers = task.freelancers_who_responded.all()
@@ -72,6 +88,9 @@ def view_ready_fl(user_id, task_id):
 @blueprint.route('/<int:user_id>/ready_fl/<int:task_id>/selected_fl/<int:fl_id>', methods=['GET','POST'])
 @customer_required
 def select_fl(user_id, task_id, fl_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Информация по фрилнсеру'
     freelancer = User.query.get(fl_id)
     user_name = freelancer.user_name
@@ -94,6 +113,9 @@ def select_fl(user_id, task_id, fl_id):
 @blueprint.route('/<int:user_id>/in_work/', methods=['GET', 'POST'])
 @customer_required
 def view_in_work_tasks(user_id):
+    if int(current_user.get_id()) != user_id:
+        flash('Это не твой id')
+        return redirect(url_for('sign.index'))
     title = 'Все заказы в работе'
     tasks = Task.query.filter(Task.customer == user_id, Task.status == IN_WORK).all()
 
