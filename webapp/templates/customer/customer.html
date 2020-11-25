@@ -43,7 +43,7 @@
         <br>
         {% for task in tasks %}
           <a href="{{ url_for('customer.view_tasks', task_id = task.id, user_id=user_id) }}">
-            {{ task.task_name }} {{ task.deadline,format='%d.%m.%Y' }} {{ task.price }}
+            Название: {{ task.task_name }}, Цена: {{ task.price }}, Дедлайн: {{ task.deadline.strftime('%d.%m.%Y') }}
           </a><br>
           <hr>
         {% endfor %}

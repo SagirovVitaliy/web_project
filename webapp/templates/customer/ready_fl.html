@@ -40,7 +40,9 @@
         {% endwith %}
         <br>
         {% for freelancer in freelancers %}
-          <a href="{{ url_for('customer.select_fl', user_id=user_id, task_id=task_id, fl_id=freelancer.id) }}">{{ freelancer }}</a><br>
+          <a href="{{ url_for('customer.select_fl', user_id=user_id, task_id=task_id, fl_id=freelancer.id) }}">
+            Имя: {{ freelancer.user_name }} 
+          </a><br>
           <hr>
         {% endfor %}
       </div>
