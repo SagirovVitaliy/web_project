@@ -1,6 +1,10 @@
 '''Валидаторы которые проверяют права доступа к маршрутам Task.'''
 
-from webapp.db import CUSTOMER, FREELANCER
+from webapp.db import (
+    CUSTOMER,
+    FREELANCER,
+    convert_task_status_id_to_label,
+)
 from webapp.errors import OperationPermissionError
 
 
@@ -66,3 +70,35 @@ def current_user_must_be_connected_to_task_as_confirmed_freelancer(
         raise OperationPermissionError(
             'Только Фрилансеры имеют право на эту операцию'
             )
+
+
+def task_must_be_in_one_of_statuses(task, task_status_ids):
+    if not task.status in task_status_ids:
+        
+        task_status_labels = []
+        for task_status_id in task_status_ids:
+            task_status_labels.append(
+                f'"{convert_task_status_id_to_label(task_status_id)}"'
+                )
+        message = (
+            'Эту операцию можно применять только к Задачам ' +
+            ('со статусами ' if len(task_status_ids) > 1 else 'со статусом ') +
+            ', '.join(task_status_labels)
+            )
+        raise OperationPermissionError(message)
+
+
+def task_must_not_be_in_one_of_statuses(task, task_status_ids):
+    if task.status in task_status_ids:
+        
+        task_status_labels = []
+        for task_status_id in task_status_ids:
+            task_status_labels.append(
+                f'"{convert_task_status_id_to_label(task_status_id)}"'
+                )
+        message = (
+            'Эту операцию нельзя применять к Задачам ' +
+            ('со статусами ' if len(task_status_ids) > 1 else 'со статусом ') +
+            ', '.join(task_status_labels)
+            )
+        raise OperationPermissionError(message)
