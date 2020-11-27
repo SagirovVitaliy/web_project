@@ -1,14 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from webapp.db import db, Task, TaskStatus, User
 from flask_login import login_required, current_user
 
-import webapp.task.access_rules as task_access_rules
-
-from webapp.task.forms import (
-    CreateTaskForm,
-    SimpleConfirmForm,
-    DismissFreelancerFromTaskForm
-    )
+from webapp.errors import OperationPermissionError, ValidationError
+from webapp.db import db, Task, TaskStatus, User
 from webapp.db import (
     CUSTOMER,
     FREELANCER,
@@ -21,7 +15,13 @@ from webapp.db import (
     IN_REVIEW,
     DONE,
     )
-from webapp.errors import OperationPermissionError, ValidationError 
+from webapp.task.forms import (
+    CreateTaskForm,
+    SimpleConfirmForm,
+    DismissFreelancerFromTaskForm
+    )
+
+import webapp.task.access_rules as task_access_rules
 import webapp.validators as validators
 
 blueprint = Blueprint('task', __name__)
@@ -74,6 +74,23 @@ def view_task(task_id):
         task = Task.query.get(task_id)
         validators.validate_task_existence(task=task)
 
+        title = f'{task.task_name}' or title
+
+        user_role_in_task = ''
+        if current_user.is_authenticated and current_user.is_active:
+            current_user_id = current_user.id
+            if task.customer == current_user_id:
+                user_role_in_task = 'task_customer'
+            if task.freelancer == current_user_id:
+                user_role_in_task = 'confirmed_freelancer'
+
+            freelancers = task.freelancers_who_responded.filter(
+                User.role == FREELANCER,
+                User.id == current_user_id,
+            ).all()
+            if len(freelancers):
+                user_role_in_task = 'responded_freelancer'
+
         # DEBUG: Сделать свежий снимок Задачи для дебага.
         task_debug_info = get_task_debug_info(task_id)
     except ValidationError as e:
@@ -86,7 +103,8 @@ def view_task(task_id):
         return render_template(
             'task/view_task.html',
             title=title,
-            task=task_debug_info
+            task=task_debug_info,
+            user_role_in_task=user_role_in_task
         )
 
 

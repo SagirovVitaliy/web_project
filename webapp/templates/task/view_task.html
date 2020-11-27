@@ -23,12 +23,37 @@
       </div>
     {% endif %}
     {% if task is mapping %}
-      <div>
-        <h2>Состояние Задачи:</h2>
+      <section>
+        <table class="table">
+          <tbody>
+            <tr>
+              <th scope="row">Описание</th>
+              <td>{{ task.description }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Цена</th>
+              <td>{{ task.price }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Дата завершения</th>
+              <td>{{ task.deadline.strftime('%d.%m.%Y') }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Ваша роль в Задаче</th>
+              <td>{{ user_role_in_task }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    {% endif %}
+    <br>
+    {% if task is mapping %}
+      <section>
+        <h2>Дебаг - Состояние Задачи:</h2>
         <br>
         {% set item_value = task %}
         {% include 'debug_tools/value_html_inspector.html' %}
-      </div>
+      </section>
     {% endif %}
   </div>
 {% endblock page_main_content %}
