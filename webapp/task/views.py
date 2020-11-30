@@ -56,6 +56,7 @@ def create_task(user_id):
                 status=status.id,
                 customer=customer.id
             )
+            
             db.session.add(task)
             db.session.commit()
 

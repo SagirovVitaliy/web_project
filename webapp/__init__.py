@@ -24,9 +24,9 @@ from webapp.freelancer.views import blueprint as freelancer_blueprint
 from webapp.task.views import blueprint as task_blueprint
 
 
-def create_app():
+def create_app(config='config.py'):
     app = Flask(__name__)
-    app.config.from_pyfile('config.py')
+    app.config.from_pyfile(config)
     db.init_app(app)
     migrate = Migrate(app, db, render_as_batch=True)
 
@@ -38,7 +38,6 @@ def create_app():
     app.register_blueprint(customer_blueprint)
     app.register_blueprint(freelancer_blueprint)
     app.register_blueprint(task_blueprint)
-
 
     @login_manager.user_loader
     def load_user(user_id):
