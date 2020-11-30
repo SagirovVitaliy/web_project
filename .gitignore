@@ -133,7 +133,3 @@ dmypy.json
 
 # linter
 *.vscode
-
-#config
-config.py
-config_test.py
