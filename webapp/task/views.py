@@ -2,8 +2,13 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
 from webapp.errors import OperationPermissionError, ValidationError
-from webapp.db import db, Task, TaskStatus, User
 from webapp.db import (
+    db,
+    Task,
+    TaskStatus,
+    User,
+    convert_task_status_id_to_label,
+
     CUSTOMER,
     FREELANCER,
 
@@ -76,20 +81,65 @@ def view_task(task_id):
 
         title = f'{task.task_name}' or title
 
-        user_role_in_task = ''
+        user_roles = {
+            'is_task_customer': False,
+            'is_confirmed_freelancer': False,
+            'is_responded_freelancer': False,
+        }
         if current_user.is_authenticated and current_user.is_active:
             current_user_id = current_user.id
             if task.customer == current_user_id:
-                user_role_in_task = 'task_customer'
+                user_roles['is_task_customer'] = True
             if task.freelancer == current_user_id:
-                user_role_in_task = 'confirmed_freelancer'
+                user_roles['is_confirmed_freelancer'] = True
 
             freelancers = task.freelancers_who_responded.filter(
                 User.role == FREELANCER,
                 User.id == current_user_id,
             ).all()
             if len(freelancers):
-                user_role_in_task = 'responded_freelancer'
+                user_roles['is_responded_freelancer'] = True
+
+        # Набираем информацию для темплайта.
+        task_status_label = convert_task_status_id_to_label(task.status)
+
+        rendered_task_customers = []
+        rendered_confirmed_freelancers = []
+        rendered_responded_freelancers = []
+
+        def render_user(user):
+            rendered = {
+                'label': '',
+                'is_current_user': False
+            }
+
+            if not user == None:
+                rendered['label'] = f'{user.get_public_label()}'
+
+                if current_user.is_authenticated and current_user.is_active:
+                    rendered['is_current_user'] = (current_user.id == user.id)
+
+            return rendered
+
+        task_customer = User.query.get(task.customer)
+        if not task_customer == None:
+            rendered_task_customers.append(
+                render_user(task_customer)
+                )
+
+        confirmed_freelancer = User.query.get(task.freelancer)
+        if not confirmed_freelancer == None:
+            rendered_confirmed_freelancers.append(
+                render_user(confirmed_freelancer)
+                )
+
+        responded_freelancers = task.freelancers_who_responded.filter(
+            User.role == FREELANCER,
+        ).all()
+        for responded_freelancer in responded_freelancers:
+            rendered_responded_freelancers.append(
+                render_user(responded_freelancer)
+                )
 
         # DEBUG: Сделать свежий снимок Задачи для дебага.
         task_debug_info = get_task_debug_info(task_id)
@@ -103,8 +153,13 @@ def view_task(task_id):
         return render_template(
             'task/view_task.html',
             title=title,
-            task=task_debug_info,
-            user_role_in_task=user_role_in_task
+            task=task,
+            rendered_task_customers=rendered_task_customers,
+            rendered_confirmed_freelancers=rendered_confirmed_freelancers,
+            rendered_responded_freelancers=rendered_responded_freelancers,
+            task_status_label=task_status_label,
+            task_debug_info=task_debug_info,
+            user_roles=user_roles
         )
 
 

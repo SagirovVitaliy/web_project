@@ -22,7 +22,7 @@
         {{ feedback_message }}
       </div>
     {% endif %}
-    {% if task is mapping %}
+    {% if task is defined %}
       <section>
         <table class="table">
           <tbody>
@@ -39,19 +39,46 @@
               <td>{{ task.deadline.strftime('%d.%m.%Y') }}</td>
             </tr>
             <tr>
-              <th scope="row">Ваша роль в Задаче</th>
-              <td>{{ user_role_in_task }}</td>
+              <th scope="row">Заказчик</th>
+              <td>
+                {% for rendered_user in rendered_task_customers %}
+                  {{ rendered_user.label }}
+                  {{- ',' if loop.first and not loop.last }}
+                {% endfor %}
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Состояние Задачи</th>
+              <td>{{ task_status_label }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Исполнитель</th>
+              <td>
+                {% for rendered_user in rendered_confirmed_freelancers %}
+                  {{ rendered_user.label }}
+                  {{- ',' if loop.first and not loop.last }}
+                {% endfor %}
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Откликнувшиеся фрилансеры</th>
+              <td>
+                {% for rendered_user in rendered_responded_freelancers %}
+                  {{ rendered_user.label }}
+                  {{- ',' if loop.first and not loop.last }}
+                {% endfor %}
+              </td>
             </tr>
           </tbody>
         </table>
       </section>
     {% endif %}
     <br>
-    {% if task is mapping %}
+    {% if task_debug_info is mapping %}
       <section>
         <h2>Дебаг - Состояние Задачи:</h2>
         <br>
-        {% set item_value = task %}
+        {% set item_value = task_debug_info %}
         {% include 'debug_tools/value_html_inspector.html' %}
       </section>
     {% endif %}
