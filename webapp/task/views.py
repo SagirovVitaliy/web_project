@@ -91,36 +91,29 @@ def view_task(task_id):
         # Набираем информацию для темплайта.
         task_status_label = convert_task_status_id_to_label(task.status)
 
-        def render_user(user):
-            '''Сконвертировать пользователя в формат удобный для темплайта'''
-            label = ''
-            is_current_user = False
-
-            if not user == None:
-
-                label = f'{user.get_public_label()}'
-
-                if current_user.is_authenticated and current_user.is_active:
-                    is_current_user = (current_user.id == user.id)
-
-            return {
-                'label': label,
-                'is_current_user': is_current_user
-                }
-
         def render_users_and_pack_to_group(users):
-            '''Список пользователей обработать и ужать в отдельную группу'''
+            '''Список пользователей обработать и ужать в группу
+
+            Которая содержит только выжимку по релевантным данным, а лишнее -
+            выкинуто.
+            '''
+
             contains_current_user = False
             rendered_users = []
 
             for user in users:
                 if not user == None:
+
+                    is_current_user = False
                     if current_user.is_authenticated and current_user.is_active:
                         if user.id == current_user.id:
+                            is_current_user = True
                             contains_current_user = True
-                    rendered_users.append(
-                        render_user(user)
-                        )
+
+                    rendered_users.append({
+                        'label': f'{user.get_public_label()}',
+                        'is_current_user': is_current_user,
+                        })
             return {
                 'contains_current_user': contains_current_user,
                 'rendered_users': rendered_users,
@@ -144,6 +137,14 @@ def view_task(task_id):
         user_groups['responded_freelancers'] = render_users_and_pack_to_group(
             users=responded_freelancers
             )
+
+        permitted_actions = []
+
+        if (
+                task.status == CREATED and
+                user_groups['task_customers']['contains_current_user']
+            ):
+            permitted_actions[] = 'publish_task'
 
         # DEBUG: Сделать свежий снимок Задачи для дебага.
         task_debug_info = get_task_debug_info(task_id)
