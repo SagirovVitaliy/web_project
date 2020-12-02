@@ -41,7 +41,7 @@
             <tr>
               <th scope="row">Заказчик</th>
               <td>
-                {% for rendered_user in rendered_task_customers %}
+                {% for rendered_user in user_groups.task_customers.rendered_users %}
                   {{ rendered_user.label }}
                   {{- ',' if loop.first and not loop.last }}
                 {% endfor %}
@@ -52,18 +52,18 @@
               <td>{{ task_status_label }}</td>
             </tr>
             <tr>
-              <th scope="row">Исполнитель</th>
+              <th scope="row">Подтверждённый Исполнитель</th>
               <td>
-                {% for rendered_user in rendered_confirmed_freelancers %}
+                {% for rendered_user in user_groups.confirmed_freelancers.rendered_users %}
                   {{ rendered_user.label }}
                   {{- ',' if loop.first and not loop.last }}
                 {% endfor %}
               </td>
             </tr>
             <tr>
-              <th scope="row">Откликнувшиеся фрилансеры</th>
+              <th scope="row">Заинтересовавшиеся фрилансеры</th>
               <td>
-                {% for rendered_user in rendered_responded_freelancers %}
+                {% for rendered_user in user_groups.responded_freelancers.rendered_users %}
                   {{ rendered_user.label }}
                   {{- ',' if loop.first and not loop.last }}
                 {% endfor %}

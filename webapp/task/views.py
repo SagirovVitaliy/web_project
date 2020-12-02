@@ -70,6 +70,13 @@ def create_task(user_id):
     return render_template('task/create_task.html', title=title, form=form, user_id=user_id)
 
 
+@blueprint.route('/tasks/add', methods=['GET', 'POST'])
+@login_required
+def add_task():
+    # TODO: Написать имплементацию этой функции.
+    pass
+
+
 @blueprint.route('/tasks/<int:task_id>', methods=['GET'])
 def view_task(task_id):
     '''Просмотреть состояние Задачи.'''
@@ -81,65 +88,62 @@ def view_task(task_id):
 
         title = f'{task.task_name}' or title
 
-        user_roles = {
-            'is_task_customer': False,
-            'is_confirmed_freelancer': False,
-            'is_responded_freelancer': False,
-        }
-        if current_user.is_authenticated and current_user.is_active:
-            current_user_id = current_user.id
-            if task.customer == current_user_id:
-                user_roles['is_task_customer'] = True
-            if task.freelancer == current_user_id:
-                user_roles['is_confirmed_freelancer'] = True
-
-            freelancers = task.freelancers_who_responded.filter(
-                User.role == FREELANCER,
-                User.id == current_user_id,
-            ).all()
-            if len(freelancers):
-                user_roles['is_responded_freelancer'] = True
-
         # Набираем информацию для темплайта.
         task_status_label = convert_task_status_id_to_label(task.status)
 
-        rendered_task_customers = []
-        rendered_confirmed_freelancers = []
-        rendered_responded_freelancers = []
-
         def render_user(user):
-            rendered = {
-                'label': '',
-                'is_current_user': False
-            }
+            '''Сконвертировать пользователя в формат удобный для темплайта'''
+            label = ''
+            is_current_user = False
 
             if not user == None:
-                rendered['label'] = f'{user.get_public_label()}'
+
+                label = f'{user.get_public_label()}'
 
                 if current_user.is_authenticated and current_user.is_active:
-                    rendered['is_current_user'] = (current_user.id == user.id)
+                    is_current_user = (current_user.id == user.id)
 
-            return rendered
+            return {
+                'label': label,
+                'is_current_user': is_current_user
+                }
+
+        def render_users_and_pack_to_group(users):
+            '''Список пользователей обработать и ужать в отдельную группу'''
+            contains_current_user = False
+            rendered_users = []
+
+            for user in users:
+                if not user == None:
+                    if current_user.is_authenticated and current_user.is_active:
+                        if user.id == current_user.id:
+                            contains_current_user = True
+                    rendered_users.append(
+                        render_user(user)
+                        )
+            return {
+                'contains_current_user': contains_current_user,
+                'rendered_users': rendered_users,
+                }
+
+        user_groups = {}
 
         task_customer = User.query.get(task.customer)
-        if not task_customer == None:
-            rendered_task_customers.append(
-                render_user(task_customer)
-                )
+        user_groups['task_customers'] = render_users_and_pack_to_group(
+            users=[task_customer]
+            )
 
         confirmed_freelancer = User.query.get(task.freelancer)
-        if not confirmed_freelancer == None:
-            rendered_confirmed_freelancers.append(
-                render_user(confirmed_freelancer)
-                )
+        user_groups['confirmed_freelancers'] = render_users_and_pack_to_group(
+            users=[confirmed_freelancer]
+            )
 
         responded_freelancers = task.freelancers_who_responded.filter(
             User.role == FREELANCER,
         ).all()
-        for responded_freelancer in responded_freelancers:
-            rendered_responded_freelancers.append(
-                render_user(responded_freelancer)
-                )
+        user_groups['responded_freelancers'] = render_users_and_pack_to_group(
+            users=responded_freelancers
+            )
 
         # DEBUG: Сделать свежий снимок Задачи для дебага.
         task_debug_info = get_task_debug_info(task_id)
@@ -154,13 +158,24 @@ def view_task(task_id):
             'task/view_task.html',
             title=title,
             task=task,
-            rendered_task_customers=rendered_task_customers,
-            rendered_confirmed_freelancers=rendered_confirmed_freelancers,
-            rendered_responded_freelancers=rendered_responded_freelancers,
+            user_groups=user_groups,
             task_status_label=task_status_label,
-            task_debug_info=task_debug_info,
-            user_roles=user_roles
+            task_debug_info=task_debug_info
         )
+
+
+@blueprint.route('/tasks/<int:task_id>/publish', methods=['GET', 'POST'])
+@login_required
+def publish_task(task_id):
+    # TODO: Написать имплементацию этой функции.
+    pass
+
+
+@blueprint.route('/tasks/<int:task_id>/confirm_freelancer_and_move_task_to_in_work', methods=['GET', 'POST'])
+@login_required
+def confirm_freelancer_and_move_task_to_in_work(task_id):
+    # TODO: Написать имплементацию этой функции.
+    pass
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_review', methods=['GET', 'POST'])
