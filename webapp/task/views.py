@@ -111,6 +111,7 @@ def view_task(task_id):
                             contains_current_user = True
 
                     rendered_users.append({
+                        'id': f'{user.id}',
                         'label': f'{user.get_public_label()}',
                         'is_current_user': is_current_user,
                         })
@@ -138,13 +139,42 @@ def view_task(task_id):
             users=responded_freelancers
             )
 
-        permitted_actions = []
+        permitted_actions = {}
 
         if (
                 task.status == CREATED and
                 user_groups['task_customers']['contains_current_user']
             ):
-            permitted_actions[] = 'publish_task'
+            permitted_actions['publish_task'] = {
+                'is_allowed': True,
+                'form': SimpleConfirmForm()
+                }
+
+        if (
+                task.status == FREELANCERS_DETECTED and
+                user_groups['task_customers']['contains_current_user']
+            ):
+            permitted_actions['confirm_freelancer_and_move_task_to_in_work'] = {
+                'is_allowed': True,
+                'form': SimpleConfirmForm()
+                }
+
+        if (
+                task.status == FREELANCERS_DETECTED and
+                user_groups['task_customers']['contains_current_user']
+            ):
+            permitted_actions['dismiss_responded_freelancer_from_task'] = {
+                'is_allowed': True,
+                'form': DismissFreelancerFromTaskForm()
+                }
+
+        if (
+                user_groups['task_customers']['contains_current_user']
+            ):
+            permitted_actions['dismiss_confirmed_freelancer_from_task'] = {
+                'is_allowed': True,
+                'form': DismissFreelancerFromTaskForm()
+                }
 
         # DEBUG: Сделать свежий снимок Задачи для дебага.
         task_debug_info = get_task_debug_info(task_id)
@@ -159,8 +189,9 @@ def view_task(task_id):
             'task/view_task.html',
             title=title,
             task=task,
-            user_groups=user_groups,
             task_status_label=task_status_label,
+            user_groups=user_groups,
+            permitted_actions=permitted_actions,
             task_debug_info=task_debug_info
         )
 

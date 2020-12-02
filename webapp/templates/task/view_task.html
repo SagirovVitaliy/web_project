@@ -56,6 +56,19 @@
               <td>
                 {% for rendered_user in user_groups.confirmed_freelancers.rendered_users %}
                   {{ rendered_user.label }}
+                  {%- if permitted_actions.dismiss_confirmed_freelancer_from_task is mapping -%}
+                    <form
+                      style="display: inline-block;"
+                      action="{{url_for( 'task.dismiss_confirmed_freelancer_from_task', task_id=task.id, user_id=rendered_user.id )}}"
+                      method="POST"
+                      >
+                      {{ permitted_actions.dismiss_confirmed_freelancer_from_task.form.hidden_tag() }}
+                      {{ permitted_actions.dismiss_confirmed_freelancer_from_task.form.csrf_token }}
+                      <button class="btn btn-danger" type="submit" name="user_id" value="{{ rendered_user.id }}">
+                        Отцепить!
+                      </button>
+                    </form>
+                  {%- endif -%}
                   {{- ',' if loop.first and not loop.last }}
                 {% endfor %}
               </td>
@@ -65,12 +78,51 @@
               <td>
                 {% for rendered_user in user_groups.responded_freelancers.rendered_users %}
                   {{ rendered_user.label }}
+                  {%- if permitted_actions.confirm_freelancer_and_move_task_to_in_work is mapping -%}
+                    <form
+                      style="display: inline-block;"
+                      action="{{url_for( 'task.confirm_freelancer_and_move_task_to_in_work', task_id=task.id, freelancer_user_id=rendered_user.id )}}"
+                      method="POST"
+                      >
+                      {{ permitted_actions.confirm_freelancer_and_move_task_to_in_work.form.hidden_tag() }}
+                      {{ permitted_actions.confirm_freelancer_and_move_task_to_in_work.form.csrf_token }}
+                      <button class="btn btn-success" type="submit">
+                        Подтвердить!
+                      </button>
+                    </form>
+                  {%- endif -%}
+                  {%- if permitted_actions.dismiss_responded_freelancer_from_task is mapping -%}
+                    <form
+                      style="display: inline-block;"
+                      action="{{url_for( 'task.dismiss_responded_freelancer_from_task', task_id=task.id, user_id=rendered_user.id )}}"
+                      method="POST"
+                      >
+                      {{ permitted_actions.dismiss_responded_freelancer_from_task.form.hidden_tag() }}
+                      {{ permitted_actions.dismiss_responded_freelancer_from_task.form.csrf_token }}
+                      <button class="btn btn-danger" type="submit" name="user_id" value="{{ rendered_user.id }}">
+                        Отцепить!
+                      </button>
+                    </form>
+                  {%- endif -%}
                   {{- ',' if loop.first and not loop.last }}
                 {% endfor %}
               </td>
             </tr>
           </tbody>
         </table>
+        {% if permitted_actions.publish_task is mapping %}
+          <form
+            style="display: inline-block;"
+            action="{{url_for( 'task.publish_task', task_id=task.id )}}"
+            method="POST"
+            >
+            {{ permitted_actions.publish_task.form.hidden_tag() }}
+            {{ permitted_actions.publish_task.form.csrf_token }}
+            <button class="btn btn-success" type="submit">
+              Опубликовать Задачу!
+            </button>
+          </form>
+        {% endif %}
       </section>
     {% endif %}
     <br>
