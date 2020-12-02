@@ -123,6 +123,19 @@
             </button>
           </form>
         {% endif %}
+        {% if permitted_actions.join_to_detected_freelancers_in_task is mapping %}
+          <form
+            style="display: inline-block;"
+            action="{{url_for( 'task.join_to_detected_freelancers_in_task', task_id=task.id )}}"
+            method="POST"
+            >
+            {{ permitted_actions.join_to_detected_freelancers_in_task.form.hidden_tag() }}
+            {{ permitted_actions.join_to_detected_freelancers_in_task.form.csrf_token }}
+            <button class="btn btn-success" type="submit">
+              Присоединиться к Задаче!
+            </button>
+          </form>
+        {% endif %}
       </section>
     {% endif %}
     <br>

@@ -160,6 +160,21 @@ def view_task(task_id):
                 }
 
         if (
+                (
+                    task.status == PUBLISHED or
+                    task.status == FREELANCERS_DETECTED
+                ) and
+                current_user.is_authenticated and
+                current_user.is_active and
+                current_user.role == FREELANCER and
+                not user_groups['responded_freelancers']['contains_current_user']
+            ):
+            permitted_actions['join_to_detected_freelancers'] = {
+                'is_allowed': True,
+                'form': SimpleConfirmForm()
+                }
+
+        if (
                 task.status == FREELANCERS_DETECTED and
                 user_groups['task_customers']['contains_current_user']
             ):
@@ -199,6 +214,13 @@ def view_task(task_id):
 @blueprint.route('/tasks/<int:task_id>/publish', methods=['GET', 'POST'])
 @login_required
 def publish_task(task_id):
+    # TODO: Написать имплементацию этой функции.
+    pass
+
+
+@blueprint.route('/tasks/<int:task_id>/join_to_detected_freelancers', methods=['GET', 'POST'])
+@login_required
+def join_to_detected_freelancers(task_id):
     # TODO: Написать имплементацию этой функции.
     pass
 
