@@ -175,10 +175,45 @@ def view_task(task_id):
                 }
 
         if (
-                task.status == FREELANCERS_DETECTED and
+                task.status == IN_WORK and
+                user_groups['confirmed_freelancers']['contains_current_user']
+            ):
+            permitted_actions['move_task_to_in_review'] = {
+                'is_allowed': True,
+                'form': SimpleConfirmForm()
+                }
+
+        if (
+                task.status == IN_REVIEW and
                 user_groups['task_customers']['contains_current_user']
             ):
-            permitted_actions['dismiss_responded_freelancer_from_task'] = {
+            permitted_actions['move_task_to_in_work'] = {
+                'is_allowed': True,
+                'form': SimpleConfirmForm()
+                }
+
+        if (
+                task.status == IN_REVIEW and
+                user_groups['task_customers']['contains_current_user']
+            ):
+            permitted_actions['move_task_to_done'] = {
+                'is_allowed': True,
+                'form': SimpleConfirmForm()
+                }
+
+        if (
+                task.status != STOPPED and
+                user_groups['task_customers']['contains_current_user']
+            ):
+            permitted_actions['cancel_task'] = {
+                'is_allowed': True,
+                'form': SimpleConfirmForm()
+                }
+
+        if (
+                user_groups['task_customers']['contains_current_user']
+            ):
+            permitted_actions['dismiss_confirmed_freelancer_from_task'] = {
                 'is_allowed': True,
                 'form': DismissFreelancerFromTaskForm()
                 }
@@ -186,7 +221,7 @@ def view_task(task_id):
         if (
                 user_groups['task_customers']['contains_current_user']
             ):
-            permitted_actions['dismiss_confirmed_freelancer_from_task'] = {
+            permitted_actions['dismiss_responded_freelancer_from_task'] = {
                 'is_allowed': True,
                 'form': DismissFreelancerFromTaskForm()
                 }
@@ -215,21 +250,21 @@ def view_task(task_id):
 @login_required
 def publish_task(task_id):
     # TODO: Написать имплементацию этой функции.
-    pass
+    return 'TODO'
 
 
 @blueprint.route('/tasks/<int:task_id>/join_to_detected_freelancers', methods=['GET', 'POST'])
 @login_required
 def join_to_detected_freelancers(task_id):
     # TODO: Написать имплементацию этой функции.
-    pass
+    return 'TODO'
 
 
 @blueprint.route('/tasks/<int:task_id>/confirm_freelancer_and_move_task_to_in_work', methods=['GET', 'POST'])
 @login_required
 def confirm_freelancer_and_move_task_to_in_work(task_id):
     # TODO: Написать имплементацию этой функции.
-    pass
+    return 'TODO'
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_review', methods=['GET', 'POST'])
@@ -282,12 +317,13 @@ def move_task_to_in_review(task_id):
                 db.session.rollback()
                 raise
             else:
-                return render_template(
-                    'task/change_task_status.success.html',
-                    title=title,
-                    task_before=task_debug_info1,
-                    task_after=task_debug_info2
-                    )
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/change_task_status.success.html',
+                #     title=title,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -357,12 +393,13 @@ def move_task_to_in_work(task_id):
                 db.session.rollback()
                 raise
             else:
-                return render_template(
-                    'task/change_task_status.success.html',
-                    title=title,
-                    task_before=task_debug_info1,
-                    task_after=task_debug_info2
-                    )
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/change_task_status.success.html',
+                #     title=title,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -432,12 +469,13 @@ def move_task_to_done(task_id):
                 db.session.rollback()
                 raise
             else:
-                return render_template(
-                    'task/change_task_status.success.html',
-                    title=title,
-                    task_before=task_debug_info1,
-                    task_after=task_debug_info2
-                    )
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/change_task_status.success.html',
+                #     title=title,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -518,12 +556,13 @@ def cancel_task(task_id):
                 db.session.rollback()
                 raise
             else:
-                return render_template(
-                    'task/change_task_status.success.html',
-                    title=title,
-                    task_before=task_debug_info1,
-                    task_after=task_debug_info2
-                )
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/change_task_status.success.html',
+                #     title=title,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                # )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -617,13 +656,14 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                 db.session.rollback()
                 raise
             else:
-                return render_template(
-                    'task/dismiss_freelancer_from_task.success.html',
-                    title=title,
-                    call_to_action_text=call_to_action_text,
-                    task_before=task_debug_info1,
-                    task_after=task_debug_info2
-                    )
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/dismiss_freelancer_from_task.success.html',
+                #     title=title,
+                #     call_to_action_text=call_to_action_text,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -723,13 +763,14 @@ def dismiss_responded_freelancer_from_task(task_id):
                 db.session.rollback()
                 raise
             else:
-                return render_template(
-                    'task/dismiss_freelancer_from_task.success.html',
-                    title=title,
-                    call_to_action_text=call_to_action_text,
-                    task_before=task_debug_info1,
-                    task_after=task_debug_info2
-                    )
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/dismiss_freelancer_from_task.success.html',
+                #     title=title,
+                #     call_to_action_text=call_to_action_text,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
