@@ -128,6 +128,13 @@ class User(db.Model, UserMixin):
         backref=db.backref('freelancers_who_responded', lazy='dynamic')
         )
 
+    def get_public_label(self):
+        '''Вернуть строку в которой - то как представлять пользователя.
+        
+        Для других посетителей сайта.
+        '''
+        return f'{self.user_name}'
+
     def set_password(self, password):
         self.password = generate_password_hash(password)
     

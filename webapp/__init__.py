@@ -2,22 +2,7 @@ from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
-
-from webapp.db import db, User, Task, TaskStatus
-
-from webapp.db import (
-    CUSTOMER,
-    FREELANCER,
-
-    CREATED,
-    PUBLISHED,
-    FREELANCERS_DETECTED,
-    IN_WORK,
-    STOPPED,
-    IN_REVIEW,
-    DONE,
-    )
-
+from webapp.db import db, User
 from webapp.sign.views import blueprint as sign_blueprint
 from webapp.customer.views import blueprint as customer_blueprint
 from webapp.freelancer.views import blueprint as freelancer_blueprint
