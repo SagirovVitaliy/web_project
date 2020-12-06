@@ -206,6 +206,22 @@ def view_task(task_id):
             users=responded_freelancers
             )
 
+        # Ставим ограничение на пользователей которые имеют право смотреть
+        # контент этой задачи.
+        if (
+                task.status == CREATED or
+                task.status == IN_WORK or
+                task.status == IN_REVIEW or
+                task.status == DONE or
+                task.status == STOPPED
+            ):
+            if (
+                    user_groups['task_customers']['contains_current_user'] or
+                    user_groups['confirmed_freelancers']['contains_current_user'] or
+                    user_groups['responded_freelancers']['contains_current_user']
+                ):
+                raise OperationPermissionError('Только участники этой Задачи имеют право для её просмотра')
+
         permitted_actions = {}
 
         if (
@@ -309,12 +325,19 @@ def view_task(task_id):
 
         # DEBUG: Сделать свежий снимок Задачи для дебага.
         task_debug_info = get_task_debug_info(task_id)
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            ), 403
     except ValidationError as e:
         return render_template(
             'task/view_task.html',
             title=title,
             feedback_message=e.args[0]
-        )
+            ), 400
     else:
         return render_template(
             'task/view_task.html',
@@ -364,26 +387,14 @@ def publish_task(task_id):
             try:
                 validators.validate_form(form)
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Внести изменения в Задачу.
                 task.status = PUBLISHED
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/change_task_status.success.html',
-                #     title=title,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -391,7 +402,7 @@ def publish_task(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-            )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -400,7 +411,7 @@ def publish_task(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-            )
+            ), 400
 
 
 @blueprint.route('/tasks/<int:task_id>/join_to_detected_freelancers', methods=['GET', 'POST'])
@@ -439,27 +450,15 @@ def join_to_detected_freelancers(task_id):
             try:
                 validators.validate_form(form)
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Внести изменения в Задачу.
                 task.freelancers_who_responded.append(current_user)
                 task.status = FREELANCERS_DETECTED
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/change_task_status.success.html',
-                #     title=title,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -467,7 +466,7 @@ def join_to_detected_freelancers(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-            )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -476,7 +475,7 @@ def join_to_detected_freelancers(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-            )
+            ), 400
 
 
 @blueprint.route('/tasks/<int:task_id>/confirm_freelancer_and_move_task_to_in_work', methods=['GET', 'POST'])
@@ -532,12 +531,10 @@ def confirm_freelancer_and_move_task_to_in_work(task_id):
                     user=user, task=task
                     )
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Внести изменения в Задачу.
 
                 task.freelancer = user.id
+                task.status = IN_WORK
 
                 # Отцепить от Задачи: Предваритально Откликнувшегося Фрилансера.
                 freelancers = task.freelancers_who_responded.filter(
@@ -545,20 +542,11 @@ def confirm_freelancer_and_move_task_to_in_work(task_id):
                     )
                 task.freelancers_who_responded = freelancers
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/change_task_status.success.html',
-                #     title=title,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -566,7 +554,7 @@ def confirm_freelancer_and_move_task_to_in_work(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-            )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -577,7 +565,7 @@ def confirm_freelancer_and_move_task_to_in_work(task_id):
             form_url=form_url,
             freelancer_choices=freelancer_choices,
             feedback_message=e.args[0]
-            )
+            ), 400
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_review', methods=['GET', 'POST'])
@@ -617,26 +605,14 @@ def move_task_to_in_review(task_id):
             try:
                 validators.validate_form(form)
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Внести изменения в Задачу.
                 task.status = IN_REVIEW
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/change_task_status.success.html',
-                #     title=title,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -644,7 +620,7 @@ def move_task_to_in_review(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-            )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -653,7 +629,7 @@ def move_task_to_in_review(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-            )
+            ), 400
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_work', methods=['GET', 'POST'])
@@ -693,26 +669,14 @@ def move_task_to_in_work(task_id):
             try:
                 validators.validate_form(form)
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Внести изменения в Задачу.
                 task.status = IN_WORK
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/change_task_status.success.html',
-                #     title=title,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -720,7 +684,7 @@ def move_task_to_in_work(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-            )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -729,7 +693,7 @@ def move_task_to_in_work(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-            )
+            ), 400
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_done', methods=['GET', 'POST'])
@@ -769,26 +733,14 @@ def move_task_to_done(task_id):
             try:
                 validators.validate_form(form)
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Внести изменения в Задачу.
                 task.status = DONE
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/change_task_status.success.html',
-                #     title=title,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -796,7 +748,7 @@ def move_task_to_done(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-            )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -805,7 +757,7 @@ def move_task_to_done(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-            )
+            ), 400
 
 
 @blueprint.route('/tasks/<int:task_id>/cancel_task', methods=['GET', 'POST'])
@@ -845,9 +797,6 @@ def cancel_task(task_id):
             try:
                 validators.validate_form(form)
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Внести изменения в задачу.
                 task.status = STOPPED
                 db.session.commit()
@@ -862,20 +811,11 @@ def cancel_task(task_id):
                     User.role != FREELANCER
                 )
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/change_task_status.success.html',
-                #     title=title,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                # )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -883,7 +823,7 @@ def cancel_task(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-        )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -892,7 +832,7 @@ def cancel_task(task_id):
             form=form,
             form_url=form_url,
             feedback_message=e.args[0]
-        )
+            ), 400
 
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_confirmed_freelancer_from_task', methods=['GET', 'POST'])
@@ -946,37 +886,33 @@ def dismiss_confirmed_freelancer_from_task(task_id):
                     user=user, task=task
                     )
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Отцепить от Задачи: Фрилансера-Подтверждённого Исполнителя.
                 task.freelancer = None
                 if (
+                        task.status == PUBLISHED or
+                        task.status == FREELANCERS_DETECTED or
                         task.status == IN_WORK or
                         task.status == IN_REVIEW
                     ):
-                    # Если это был удалён последний Фрилансер в списке; и
+                    # Если это был удалён последний Фрилансер-Исполнитель; и
                     # если задача - в Статусе когда нельзя делать
                     # последующие шаги к Главной Цели, не имея Фрилансеров в
                     # этом списке, тогда надо перевести Задачу в Статус
-                    # PUBLISHED.
-                    task.status = PUBLISHED
+                    # либо PUBLISHED либо FREELANCERS_DETECTED.
+                    freelancers = task.freelancers_who_responded.filter(
+                        User.role == FREELANCER,
+                        User.id != user_id
+                        )
+                    if freelancers.count() > 0:
+                        task.status = FREELANCERS_DETECTED
+                    else:
+                        task.status = PUBLISHED
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/dismiss_freelancer_from_task.success.html',
-                #     title=title,
-                #     call_to_action_text=call_to_action_text,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -984,7 +920,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-            )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -995,7 +931,7 @@ def dismiss_confirmed_freelancer_from_task(task_id):
             form_url=form_url,
             freelancer_choices=freelancer_choices,
             feedback_message=e.args[0]
-            )
+            ), 400
 
 
 @blueprint.route('/tasks/<int:task_id>/dismiss_responded_freelancer_from_task', methods=['GET', 'POST'])
@@ -1051,9 +987,6 @@ def dismiss_responded_freelancer_from_task(task_id):
                     user=user, task=task
                     )
 
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info1 = get_task_debug_info(task_id)
-
                 # Отцепить от Задачи: Предваритально Откликнувшегося Фрилансера.
                 freelancers = task.freelancers_who_responded.filter(
                     User.role == FREELANCER,
@@ -1069,21 +1002,11 @@ def dismiss_responded_freelancer_from_task(task_id):
                         # PUBLISHED.
                         task.status = PUBLISHED
                 db.session.commit()
-
-                # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/dismiss_freelancer_from_task.success.html',
-                #     title=title,
-                #     call_to_action_text=call_to_action_text,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -1091,7 +1014,7 @@ def dismiss_responded_freelancer_from_task(task_id):
             'task/access_denied.html',
             title=title,
             feedback_message=e.args[0]
-            )
+            ), 403
     except ValidationError as e:
         db.session.rollback()
         return render_template(
@@ -1102,4 +1025,4 @@ def dismiss_responded_freelancer_from_task(task_id):
             form_url=form_url,
             freelancer_choices=freelancer_choices,
             feedback_message=e.args[0]
-            )
+            ), 400
