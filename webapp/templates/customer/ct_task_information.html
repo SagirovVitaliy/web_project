@@ -1,79 +1,66 @@
 {% extends 'layouts/base.html' %}
 
-{% block page_header_content %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('customer.view_created_tasks', user_id=user_id )}}">Free Freelance</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link" href="{{ url_for('customer.view_created_tasks', user_id=user_id) }}">Созданные</a>
-        <a class="nav-link" href="{{ url_for('customer.view_published_tasks', user_id=user_id) }}">Опубликованные</a>
-        <a class="nav-link" href="{{ url_for('customer.view_freelancers_detected_task', user_id=user_id) }}">Активные</a>
-        <a class="nav-link" href="{{ url_for('customer.view_in_work_tasks', user_id=user_id) }}">В работе</a>
-      </div>
-    </div>
-    <form class="form-inline mr-3" action="{{ url_for('task.create_task', user_id=user_id) }}">
-      <button class="btn btn-outline-light btn-sm" type="submit" >Создать проект</button>
-    </form>
-    <form class="form-inline " action="{{ url_for('sign.sign_out') }}">
-      <button class="btn btn-outline-light btn-sm" type="submit" >Выйти</button>
-    </form>
-  </div>
-</nav>
-{% endblock page_header_content %}
-
 {% block page_main_content %}
   <div class="container">
-    <div class="row">
-      <div class="col-8">
-        <br>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-primary" role="alert">
-              {% for message in messages %}
-                {{ message }}<br>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-        <h3>Описание проекта</h3>
-        <table class="table">
-          <tbody>
-            <tr>
-              <th scope="row">Название</th>
-              <td>{{ task_name }}</td>
-            </tr>
-            <tr>
-              <th scope="row">Описание</th>
-              <td>{{ description }}</td>
-            </tr>
-            <tr>
-              <th scope="row">Цена</th>
-              <td>{{ price }}</td>
-            </tr>
-            <tr>
-              <th scope="row">Дата завершения</th>
-              <td>{{ deadline.strftime('%d.%m.%Y') }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        {% if task.status == 1 %}
-          <form action="{{url_for('customer.view_tasks', user_id=user_id, task_id=task_id)}}" method="POST">
-            <button type="submit" class="btn btn-dark">Опубликовать</button>
-          </form>
-        {% elif task.status == 2 %}
-          <form action="{{url_for('customer.view_tasks', user_id=user_id, task_id=task_id)}}" method="POST">
-            <button type="submit" class="btn btn-dark">Снять с публикации</button>
-          </form>
+    <br>
+    <section>
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('customer.view_created_tasks', user_id=user_id) }}">Созданные</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('customer.view_published_tasks', user_id=user_id) }}">Опубликованные</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('customer.view_freelancers_detected_task', user_id=user_id) }}">Активные</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('customer.view_in_work_tasks', user_id=user_id) }}">В работе</a>
+        </li>
+      </ul>
+    </section>
+    <section>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert alert-primary" role="alert">
+            {% for message in messages %}
+              {{ message }}<br>
+            {% endfor %}
+          </div>
         {% endif %}
+      {% endwith %}
+      <h3>Описание проекта</h3>
+      <table class="table">
+        <tbody>
+          <tr>
+            <th scope="row">Название</th>
+            <td>{{ task_name }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Описание</th>
+            <td>{{ description }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Цена</th>
+            <td>{{ price }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Дата завершения</th>
+            <td>{{ deadline.strftime('%d.%m.%Y') }}</td>
+          </tr>
+        </tbody>
+      </table>
 
-      </div>
-      <div class="col-4">
-      </div>
-    </div>
+      {% if task.status == 1 %}
+        <form action="{{url_for('customer.view_tasks', user_id=user_id, task_id=task_id)}}" method="POST">
+          <button type="submit" class="btn btn-dark">Опубликовать</button>
+        </form>
+      {% elif task.status == 2 %}
+        <form action="{{url_for('customer.view_tasks', user_id=user_id, task_id=task_id)}}" method="POST">
+          <button type="submit" class="btn btn-dark">Снять с публикации</button>
+        </form>
+      {% endif %}
+
+    </section>
   </div>
 {% endblock page_main_content %}
