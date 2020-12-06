@@ -1,0 +1,37 @@
+{% extends 'layouts/base.html' %}
+
+{% block page_header_content %}
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('sign.index') }}">Free Freelance</a>
+    </div>
+    <form class="form-inline mr-3" action="{{ url_for('sign.sign_up') }}">
+      <button class="btn btn-outline-light btn-sm" type="submit" >Регистрация</button>
+    </form>
+    <form class="form-inline " action="{{ url_for('sign.sign_in') }}">
+      <button class="btn btn-outline-light btn-sm" type="submit" >Войти</button>
+    </form>
+  </nav>
+{% endblock page_header_content %}
+
+{% block page_main_content %}
+  <div class="container">
+    <h1>{{ title }}</h1>
+    {% if feedback_message is string %}
+      <div class="alert alert-warning" role="alert">
+        {{ feedback_message }}
+      </div>
+    {% endif %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-warning" role="alert">
+          {% for message in messages %}
+            {{ message }}<br>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% set user_choices = freelancer_choices %}
+    {% include 'task/choose_freelancer_from_task.widgets.freelancer_choices.html' %}
+  </div>
+{% endblock page_main_content %}

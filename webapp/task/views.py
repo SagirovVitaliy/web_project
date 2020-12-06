@@ -23,6 +23,7 @@ from webapp.db import (
 from webapp.task.forms import (
     CreateTaskForm,
     SimpleConfirmForm,
+    ConfirmFreelancerFromTaskForm,
     DismissFreelancerFromTaskForm
     )
 
@@ -217,6 +218,20 @@ def view_task(task_id):
                 }
 
         if (
+                (
+                    task.status == PUBLISHED or
+                    task.status == FREELANCERS_DETECTED
+                ) and
+                current_user.is_authenticated and
+                current_user.is_active and
+                current_user.role == FREELANCER
+            ):
+            permitted_actions['join_to_detected_freelancers_in_task'] = {
+                'is_allowed': True,
+                'form': SimpleConfirmForm()
+                }
+
+        if (
                 task.status == FREELANCERS_DETECTED and
                 user_groups['task_customers']['contains_current_user']
             ):
@@ -315,22 +330,254 @@ def view_task(task_id):
 @blueprint.route('/tasks/<int:task_id>/publish', methods=['GET', 'POST'])
 @login_required
 def publish_task(task_id):
-    # TODO: Написать имплементацию этой функции.
-    return 'TODO'
+    '''Заказчик требует двинуть Задачу со статуса CREATED в PUBLISHED'''
+    title = 'Опубликовать Задачу'
+    form_url = url_for('task.publish_task', task_id=task_id)
+
+    form = SimpleConfirmForm()
+
+    try:
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(task=task)
+
+        task_access_rules.current_user_must_be_connected_to_task_as_customer(
+            current_user=current_user,
+            task=task
+            )
+        task_access_rules.task_must_be_in_one_of_statuses(
+            task=task,
+            task_status_ids = [CREATED]
+            )
+
+        if request.method == 'GET':
+
+            return render_template(
+                'task/change_task_status.form.html',
+                title=title,
+                form=form,
+                form_url=form_url,
+                feedback_message='Вы действительно хотите опуликовать эту Задачу?'
+                )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                # Внести изменения в Задачу.
+                task.status = PUBLISHED
+                db.session.commit()
+
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/change_task_status.success.html',
+                #     title=title,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/change_task_status.form.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+            )
 
 
 @blueprint.route('/tasks/<int:task_id>/join_to_detected_freelancers', methods=['GET', 'POST'])
 @login_required
 def join_to_detected_freelancers(task_id):
-    # TODO: Написать имплементацию этой функции.
-    return 'TODO'
+    '''Фрилансер требует присоединиться к заказу в статусе PUBLISHED или FREELANCERS_DETECTED.'''
+    title = 'Отклинкуться на Заказ'
+    form_url = url_for('task.join_to_detected_freelancers', task_id=task_id)
+
+    form = SimpleConfirmForm()
+
+    try:
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(task=task)
+
+        task_access_rules.current_user_must_be_freelancer(
+            current_user=current_user
+            )
+        task_access_rules.task_must_be_in_one_of_statuses(
+            task=task,
+            task_status_ids = [PUBLISHED, FREELANCERS_DETECTED]
+            )
+
+        if request.method == 'GET':
+
+            return render_template(
+                'task/change_task_status.form.html',
+                title=title,
+                form=form,
+                form_url=form_url,
+                feedback_message='Вы действительно хотите откликнуться на эту Задачу?'
+                )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                # Внести изменения в Задачу.
+                task.freelancers_who_responded.append(current_user)
+                task.status = FREELANCERS_DETECTED
+                db.session.commit()
+
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/change_task_status.success.html',
+                #     title=title,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/change_task_status.form.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+            )
 
 
 @blueprint.route('/tasks/<int:task_id>/confirm_freelancer_and_move_task_to_in_work', methods=['GET', 'POST'])
 @login_required
 def confirm_freelancer_and_move_task_to_in_work(task_id):
-    # TODO: Написать имплементацию этой функции.
-    return 'TODO'
+    '''Заказчик требует двинуть Задачу со статуса FREELANCERS_DETECTED в IN_WORK'''
+    title = 'Выбрать Фрилансера'
+    form_url = url_for('task.confirm_freelancer_and_move_task_to_in_work', task_id=task_id)
+    call_to_action_text = 'Выберите Предварительно Откликнувшихся Фрилансера которого вы хотите выбрать как Исполнителя Задачи'
+
+    form = SimpleConfirmForm()
+    freelancer_choices = []
+
+    try:
+        task = Task.query.get(task_id)
+        validators.validate_task_existence(task=task)
+
+        task_access_rules.current_user_must_be_connected_to_task_as_customer(
+            current_user=current_user,
+            task=task
+            )
+        task_access_rules.task_must_be_in_one_of_statuses(
+            task=task,
+            task_status_ids = [FREELANCERS_DETECTED]
+            )
+
+        freelancer_choices = task.freelancers_who_responded.filter(
+            User.role == FREELANCER,
+        ).all()
+
+        if request.method == 'GET':
+
+            return render_template(
+                'task/choose_freelancer_from_task.form.html',
+                title=title,
+                call_to_action_text=call_to_action_text,
+                form=form,
+                form_url=form_url,
+                freelancer_choices=freelancer_choices
+                )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                user_id = request.form.get('user_id');
+
+                user = User.query.get(user_id)
+                validators.validate_user_existence(user)
+                validators.validate_if_user_is_freelancer(user)
+                validators.is_user_connected_to_task_as_responded_freelancer(
+                    user=user, task=task
+                    )
+
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
+                task_debug_info1 = get_task_debug_info(task_id)
+
+                # Внести изменения в Задачу.
+
+                task.freelancer = user.id
+
+                # Отцепить от Задачи: Предваритально Откликнувшегося Фрилансера.
+                freelancers = task.freelancers_who_responded.filter(
+                    False
+                    )
+                task.freelancers_who_responded = freelancers
+                db.session.commit()
+
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/change_task_status.success.html',
+                #     title=title,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/choose_freelancer_from_task.form.html',
+            title=title,
+            call_to_action_text=call_to_action_text,
+            form=form,
+            form_url=form_url,
+            freelancer_choices=freelancer_choices,
+            feedback_message=e.args[0]
+            )
 
 
 @blueprint.route('/tasks/<int:task_id>/move_task_to_in_review', methods=['GET', 'POST'])
