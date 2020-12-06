@@ -79,6 +79,7 @@ def add_task():
 
 
 @blueprint.route('/tasks/<int:task_id>', methods=['GET'])
+@login_required
 def view_task(task_id):
     '''Просмотреть состояние Задачи.'''
     title = 'Просматриваем состояние Задачи'
