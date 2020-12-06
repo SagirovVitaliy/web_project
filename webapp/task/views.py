@@ -220,7 +220,7 @@ def view_task(task_id):
                 task.status == DONE or
                 task.status == STOPPED
             ):
-            if (
+            if not (
                     user_groups['task_customers']['contains_current_user'] or
                     user_groups['confirmed_freelancers']['contains_current_user'] or
                     user_groups['responded_freelancers']['contains_current_user']
