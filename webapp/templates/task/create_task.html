@@ -1,28 +1,17 @@
 {% extends 'layouts/base.html' %}
 
 {% block page_header_content %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('customer.view_created_tasks', user_id=user_id )}}">Free Freelance</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link" href="{{ url_for('customer.view_created_tasks', user_id=user_id) }}">Созданные</a>
-        <a class="nav-link" href="{{ url_for('customer.view_published_tasks', user_id=user_id) }}">Опубликованные</a>
-        <a class="nav-link" href="{{ url_for('customer.view_freelancers_detected_task', user_id=user_id) }}">Активные</a>
-        <a class="nav-link" href="{{ url_for('customer.view_in_work_tasks', user_id=user_id) }}">В работе</a>
-      </div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('sign.index') }}">Free Freelance</a>
     </div>
-    <form class="form-inline mr-3" action="{{ url_for('task.create_task', user_id=user_id) }}">
-      <button class="btn btn-outline-light btn-sm" type="submit" >Создать проект</button>
+    <form class="form-inline mr-3" action="{{ url_for('sign.sign_up') }}">
+      <button class="btn btn-outline-light btn-sm" type="submit" >Регистрация</button>
     </form>
-    <form class="form-inline " action="{{ url_for('sign.sign_out') }}">
-      <button class="btn btn-outline-light btn-sm" type="submit" >Выйти</button>
+    <form class="form-inline " action="{{ url_for('sign.sign_in') }}">
+      <button class="btn btn-outline-light btn-sm" type="submit" >Войти</button>
     </form>
-  </div>
-</nav>
+  </nav>
 {% endblock page_header_content %}
 
 {% block page_main_content %}
@@ -39,7 +28,7 @@
           {% endif %}
         {% endwith %}
         <br>
-        <form action="{{url_for( 'task.create_task', user_id=user_id )}}" method="POST">
+        <form action="{{ form_url }}" method="POST">
           {{ form.hidden_tag() }}
           <div class="form-group">
             {{ form.task_name(placeholder=form.task_name.label.text) }}

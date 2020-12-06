@@ -48,7 +48,6 @@ def create_task(user_id):
         return redirect(url_for('sign.index'))
     title = 'Создание заказа'
     form = CreateTaskForm()
-    status = TaskStatus.query.filter(TaskStatus.id == CREATED).one()
     customer = User.query.get(user_id)
 
     if request.method == 'POST':
@@ -58,7 +57,7 @@ def create_task(user_id):
                 description=form.description.data,
                 price=form.price.data,
                 deadline=form.deadline.data,
-                status=status.id,
+                status=CREATED,
                 customer=customer.id
             )
             
@@ -74,7 +73,79 @@ def create_task(user_id):
 @blueprint.route('/tasks/add', methods=['GET', 'POST'])
 @login_required
 def add_task():
-    # TODO: Написать имплементацию этой функции.
+    '''Заказчик требует создать Задачу со статусом CREATED.'''
+    title = 'Создать Задачу'
+    form_url = url_for('task.add_task')
+
+    form = CreateTaskForm()
+
+    try:
+
+        if request.method == 'GET':
+
+            return render_template(
+                'task/create_task.html',
+                title=title,
+                form=form,
+                form_url=form_url,
+                feedback_message='Создать задачу',
+                user_id=current_user.id
+                )
+
+        elif request.method == 'POST':
+
+            try:
+                validators.validate_form(form)
+
+                task_access_rules.current_user_must_be_customer(
+                    current_user=current_user
+                    )
+
+                task = Task(
+                    task_name=form.task_name.data,
+                    description=form.description.data,
+                    price=form.price.data,
+                    deadline=form.deadline.data,
+                    status=CREATED,
+                    customer=current_user.id
+                )
+                
+                db.session.add(task)
+                db.session.commit()
+                db.session.refresh(task)
+
+                task_id = task.id
+
+                # DEBUG: Сделать свежий снимок Задачи для дебага.
+                task_debug_info2 = get_task_debug_info(task_id)
+            except:
+                db.session.rollback()
+                raise
+            else:
+                return redirect(url_for('task.view_task', task_id=task_id))
+                # return render_template(
+                #     'task/change_task_status.success.html',
+                #     title=title,
+                #     task_before=task_debug_info1,
+                #     task_after=task_debug_info2
+                #     )
+
+    except OperationPermissionError as e:
+        db.session.rollback()
+        return render_template(
+            'task/access_denied.html',
+            title=title,
+            feedback_message=e.args[0]
+            )
+    except ValidationError as e:
+        db.session.rollback()
+        return render_template(
+            'task/create_task.html',
+            title=title,
+            form=form,
+            form_url=form_url,
+            feedback_message=e.args[0]
+            )
     pass
 
 
