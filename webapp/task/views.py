@@ -84,12 +84,11 @@ def add_task():
         if request.method == 'GET':
 
             return render_template(
-                'task/create_task.html',
+                'task/add_task.html',
                 title=title,
                 form=form,
                 form_url=form_url,
-                feedback_message='Создать задачу',
-                user_id=current_user.id
+                feedback_message='Создать задачу'
                 )
 
         elif request.method == 'POST':
@@ -117,18 +116,12 @@ def add_task():
                 task_id = task.id
 
                 # DEBUG: Сделать свежий снимок Задачи для дебага.
-                task_debug_info2 = get_task_debug_info(task_id)
+                task_debug_info = get_task_debug_info(task_id)
             except:
                 db.session.rollback()
                 raise
             else:
                 return redirect(url_for('task.view_task', task_id=task_id))
-                # return render_template(
-                #     'task/change_task_status.success.html',
-                #     title=title,
-                #     task_before=task_debug_info1,
-                #     task_after=task_debug_info2
-                #     )
 
     except OperationPermissionError as e:
         db.session.rollback()
@@ -140,7 +133,7 @@ def add_task():
     except ValidationError as e:
         db.session.rollback()
         return render_template(
-            'task/create_task.html',
+            'task/add_task.html',
             title=title,
             form=form,
             form_url=form_url,
