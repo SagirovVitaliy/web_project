@@ -23,7 +23,6 @@ from webapp.db import (
 from webapp.task.forms import (
     CreateTaskForm,
     SimpleConfirmForm,
-    ConfirmFreelancerFromTaskForm,
     DismissFreelancerFromTaskForm
     )
 
