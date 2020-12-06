@@ -1,0 +1,45 @@
+{# На выбор - пользователи чтобы отцепить.
+  
+  Как использовать темплайты виджета value_html_inspector:
+  В своём коде подключите
+    {% set user_choices = example_variable %}
+    {% include 'debug_tools/value_html_inspector.html' %}
+  
+  где example_variable - это переменная которая содержит список Пользователей.
+#}
+{% if ((user_choices is iterable) and
+       (user_choices|length > 0)) %}
+  {% if call_to_action_text is defined %}
+    <div>
+      {{ call_to_action_text}}
+    </div>
+    <br>
+{% endif %}
+  <form action="{{ form_url }}" method="POST">
+    {{ form.hidden_tag() }}
+    {% for freelancer in user_choices %}
+      <div class="d-flex m-n2">
+        <div class="p-2">
+          <button
+            class="btn btn-dark"
+            type="submit"
+            name="user_id"
+            value="{{ freelancer.id }}"
+            >
+            Подтвердить
+          </button>
+        </div>
+        <div class="p-2">
+          <h3>{{ freelancer.user_name }}</h3>
+          <div>
+            {{ freelancer }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </form>
+{% else %}
+  <div>
+    Нет Фрилансеров на выбор
+  </div>
+{% endif %}

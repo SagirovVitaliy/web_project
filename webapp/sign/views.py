@@ -85,6 +85,22 @@ def index():
     title = 'Главная страница'
     demo_links = [
         {
+            'url': url_for('sign.sign_up'),
+            'label': '〰😶 Регистрация.',
+        },
+        {
+            'url': url_for('sign.sign_in'),
+            'label': '〰😶 Войти.',
+        },
+        {
+            'url': url_for('sign.sign_out'),
+            'label': '〰😶 Выйти.',
+        },
+        {
+            'url': url_for('task.view_task', task_id=2),
+            'label': '〰😶 Просмотреть Задачу номер 2.',
+        },
+        {
             'url': url_for('task.view_task', task_id=3),
             'label': '〰😶 Просмотреть Задачу номер 3.',
         },
