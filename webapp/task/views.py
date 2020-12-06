@@ -68,7 +68,12 @@ def create_task(user_id):
             flash('Вы успешно создали заказ!')
             return redirect(url_for('customer.view_created_tasks', user_id=user_id))
 
-    return render_template('task/create_task.html', title=title, form=form, user_id=user_id)
+    return render_template(
+        'task/create_task.html',
+        title=title,
+        form=form,
+        user_id=user_id
+        )
 
 
 @blueprint.route('/tasks/add', methods=['GET', 'POST'])
