@@ -1,49 +1,36 @@
 {% extends 'layouts/base.html' %}
 
-{% block page_header_content %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('freelancer.view_tasks_for_fl', user_id=user_id) }}">Free Freelance</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link active" href="{{ url_for('freelancer.view_tasks_for_fl', user_id=user_id) }}">Активные</a>
-        <a class="nav-link" href="{{ url_for('freelancer.view_tasks_in_work', user_id=user_id) }}">В работе</a>
-      </div>
-    </div>
-    <form class="form-inline " action="{{ url_for('sign.sign_out') }}">
-      <button class="btn btn-outline-light btn-sm" type="submit" >Выйти</button>
-    </form>
-  </div>
-</nav>
-{% endblock page_header_content %}
-
 {% block page_main_content %}
   <div class="container">
-    <div class="row">
-      <div class="col-8">
-        <br>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-primary" role="alert">
-              {% for message in messages %}
-                {{ message }}<br>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
+    <br>
+    <section>
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('freelancer.view_tasks_for_fl', user_id=user_id) }}">Активные</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('freelancer.view_tasks_in_work', user_id=user_id) }}">В работе</a>
+        </li>
+      </ul>
+    </section>
+    <br>
+    <section>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert alert-primary" role="alert">
+            {% for message in messages %}
+              {{ message }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
 
-        {% for task in tasks %}
-          <a href="{{ url_for('freelancer.view_task_information', user_id=user_id, task_id = task.id) }}">
-            Название: {{ task.task_name }}, Цена: {{ task.price }}, Дедлайн: {{ task.deadline.strftime('%d.%m.%Y') }}
-          </a><br>
-          <hr>
-        {% endfor %}
-      </div>
-      <div class="col-4">
-      </div>
-    </div>
+      {% for task in tasks %}
+        <a href="{{ url_for('freelancer.view_task_information', user_id=user_id, task_id = task.id) }}">
+          Название: {{ task.task_name }}, Цена: {{ task.price }}, Дедлайн: {{ task.deadline.strftime('%d.%m.%Y') }}
+        </a><br>
+        <hr>
+      {% endfor %}
+    </section>
   </div>
 {% endblock page_main_content %}

@@ -35,6 +35,29 @@
   <body>
     <header>
       {% block page_header_content %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('sign.index') }}">Free Freelance</a>
+          </div>
+          {% if current_user.is_authenticated and current_user.is_active: %}
+            <form class="form-inline " action="{{ url_for('sign.sign_out') }}">
+              <button class="btn btn-outline-light btn-sm" type="submit">
+                Выйти
+              </button>
+            </form>
+          {% else %}
+            <form class="form-inline mr-3" action="{{ url_for('sign.sign_up') }}">
+              <button class="btn btn-outline-light btn-sm" type="submit">
+                Регистрация
+              </button>
+            </form>
+            <form class="form-inline " action="{{ url_for('sign.sign_in') }}">
+              <button class="btn btn-outline-light btn-sm" type="submit">
+                Войти
+              </button>
+            </form>
+          {% endif %}
+        </nav>
       {% endblock page_header_content %}
     </header>
     <main>
@@ -46,6 +69,8 @@
     </main>
     <footer>
       {% block page_footer_content %}
+        <div style="height: 60vh;">
+        </div>
       {% endblock page_footer_content %}
     </footer>
 
