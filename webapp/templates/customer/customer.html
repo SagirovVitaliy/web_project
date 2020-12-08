@@ -3,25 +3,29 @@
 {% block page_main_content %}
   <div class="container">
     <section>
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a class="nav-link active" href="{{ url_for('customer.view_created_tasks', user_id=user_id) }}">Созданные</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('customer.view_published_tasks', user_id=user_id) }}">Опубликованные</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('customer.view_freelancers_detected_task', user_id=user_id) }}">Активные</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('customer.view_in_work_tasks', user_id=user_id) }}">В работе</a>
-        </li>
-      </ul>
+      {% if ((task_status_tabs is iterable) and
+             (task_status_tabs|length > 0)) %}
+        <ul class="nav nav-tabs">
+          {% for task_status_tab in task_status_tabs %}
+            <li class="nav-item">
+              <a
+                class="nav-link {{ 'active' if task_status_tab.is_selected }}"
+                href="{{ task_status_tab.url }}"
+                >
+                {{ task_status_tab.label }}
+                </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </section>
     <section>
+      <br>
       {% for task in tasks %}
-        <a href="{{ url_for('customer.view_tasks', task_id = task.id, user_id=user_id) }}">
-          Название: {{ task.task_name }}, Цена: {{ task.price }}, Дедлайн: {{ task.deadline.strftime('%d.%m.%Y') }}
+        <a href="{{ url_for('task.view_task', task_id=task.id) }}">
+          Название: {{ task.task_name }},
+          Цена: {{ task.price }},
+          Дедлайн: {{ task.deadline.strftime('%d.%m.%Y') }}
         </a><br>
         <hr>
       {% else %}
