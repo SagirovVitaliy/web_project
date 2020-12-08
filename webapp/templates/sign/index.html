@@ -1,24 +1,7 @@
 {% extends 'layouts/base.html' %}
 
 {% block page_main_content %}
-  <br>
   <div class="container">
-    <div class="row">
-      <div class="col-8">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-primary" role="alert">
-              {% for message in messages %}
-                {{ message }}<br>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-      </div>
-      <div class="col-4">
-      </div>
-    </div>
-    <br>
     <div>
       <div class="list-group">
         {% for demo_link in demo_links %}

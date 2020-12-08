@@ -11,7 +11,7 @@ class RegistrationForm(FlaskForm):
     public_bio = TextAreaField('Расскажите о себе', validators=[DataRequired()])
     password1 = PasswordField('Введите пароль', validators=[DataRequired()])
     password2 = PasswordField('Повторите пароль', validators=[DataRequired(), EqualTo('password1')])
-    submit = SubmitField('Зарегистрироваться')
+    submit = SubmitField('Зарегистрироваться', render_kw={'class': 'btn btn-dark'})
 
 
 class LoginForm(FlaskForm):

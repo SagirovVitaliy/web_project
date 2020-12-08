@@ -9,7 +9,7 @@ blueprint = Blueprint('sign', __name__)
 
 @blueprint.route('/sign_up', methods=['GET', 'POST'])
 def sign_up():
-    title = 'Регистрация пользователя'
+    title = 'Регистрация'
     form = RegistrationForm()
     form.role.choices = [(role.id, role.role) for role in UserRole.query.all()]
 

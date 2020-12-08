@@ -2,43 +2,29 @@
 
 {% block page_main_content %}
   <div class="container">
-    <div class="row">
-      <div class="col-8">
-        <br>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-primary" role="alert">
-              {% for message in messages %}
-                {{ message }}<br>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-        <form action="{{url_for( 'sign.sign_in' )}}" method="POST">
-          {{ form.hidden_tag() }}
-          <div>
-            {{ form.csrf_token }}
-            <div class="form-group">
-              {{ form.user_name.label }}<br>
-              {{ form.user_name }}
-            </div>
-            <div class="form-group">
-              {{ form.password.label }}<br>
-              {{ form.password }}
-            </div>
-            <div class="custom-control custom-checkbox custom-checkbox-black">
-              {{ form.remember_me }}
-              {{ form.remember_me.label(class_="custom-control-label") }}
-            </div>
-            <div>
-              <br>
-              {{ form.submit }}
-            </div>
+    <section>
+      <form action="{{url_for( 'sign.sign_in' )}}" method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+          {{ form.csrf_token }}
+          <div class="form-group">
+            {{ form.user_name.label }}<br>
+            {{ form.user_name }}
           </div>
-        </form>
-      </div>
-      <div class="col-4">
-      </div>
-    </div>
+          <div class="form-group">
+            {{ form.password.label }}<br>
+            {{ form.password }}
+          </div>
+          <div class="custom-control custom-checkbox custom-checkbox-black">
+            {{ form.remember_me }}
+            {{ form.remember_me.label(class_="custom-control-label") }}
+          </div>
+          <div>
+            <br>
+            {{ form.submit }}
+          </div>
+        </div>
+      </form>
+    </section>
   </div>
 {% endblock page_main_content %}

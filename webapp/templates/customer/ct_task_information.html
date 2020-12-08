@@ -2,7 +2,6 @@
 
 {% block page_main_content %}
   <div class="container">
-    <br>
     <section>
       <ul class="nav nav-tabs">
         <li class="nav-item">
@@ -20,15 +19,6 @@
       </ul>
     </section>
     <section>
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="alert alert-primary" role="alert">
-            {% for message in messages %}
-              {{ message }}<br>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
       <h3>Описание проекта</h3>
       <table class="table">
         <tbody>

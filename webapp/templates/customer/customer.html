@@ -2,7 +2,6 @@
 
 {% block page_main_content %}
   <div class="container">
-    <br>
     <section>
       <ul class="nav nav-tabs">
         <li class="nav-item">
@@ -20,17 +19,6 @@
       </ul>
     </section>
     <section>
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <br>
-          <div class="alert alert-primary" role="alert">
-            {% for message in messages %}
-              {{ message }}<br>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
-      <br>
       {% for task in tasks %}
         <a href="{{ url_for('customer.view_tasks', task_id = task.id, user_id=user_id) }}">
           Название: {{ task.task_name }}, Цена: {{ task.price }}, Дедлайн: {{ task.deadline.strftime('%d.%m.%Y') }}
