@@ -3,16 +3,16 @@
 {% block page_main_content %}
   <div class="container">
     <section>
-      {% if ((task_status_tabs is iterable) and
-             (task_status_tabs|length > 0)) %}
+      {% if ((task_tabs is iterable) and
+             (task_tabs|length > 0)) %}
         <ul class="nav nav-tabs">
-          {% for task_status_tab in task_status_tabs %}
+          {% for task_tab in task_tabs %}
             <li class="nav-item">
               <a
-                class="nav-link {{ 'active' if task_status_tab.is_selected }}"
-                href="{{ task_status_tab.url }}"
+                class="nav-link {{ 'active' if task_tab.is_selected }}"
+                href="{{ task_tab.url }}"
                 >
-                {{ task_status_tab.label }}
+                {{ task_tab.label }}
                 </a>
             </li>
           {% endfor %}

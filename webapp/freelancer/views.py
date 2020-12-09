@@ -1,10 +1,14 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from webapp.db import (
     db,
+    freelancers_who_responded as freelancersWhoResponded,
     Task,
     TaskStatus,
     User,
     convert_task_status_id_to_label,
+
+    CUSTOMER,
+    FREELANCER,
 
     CREATED,
     PUBLISHED,
@@ -26,65 +30,95 @@ def view_freelancer(user_id):
     if int(current_user.get_id()) != user_id:
         flash('Это не твой id')
         return redirect(url_for('sign.index'))
-    title = 'Фрилансер'
+    title = 'Личный кабинет Фрилансера'
     
-    task_status_tab = request.args.get('tab')
-    mapping = {
-        'created': CREATED,
-        'published': PUBLISHED,
-        'freelancers_detected': FREELANCERS_DETECTED,
-        'in_work': IN_WORK,
-        'stopped': STOPPED,
-        'in_review': IN_REVIEW,
-        'done': DONE,
-    }
-    task_status_id = mapping.get(task_status_tab)
-    if task_status_id == None:
-        task_status_tab = 'created'
-        task_status_id = CREATED
+    task_tab = request.args.get('tab')
+    allowed_tab_values = [
+        'freelancer_may_respond',
+        'freelancer_responded_and_is_waiting_for_approval',
+        'in_work',
+        'in_review',
+        'done',
+    ];
+    if task_tab == None:
+        task_tab = allowed_tab_values[0]
     
-    tasks = Task.query.filter(
-        Task.freelancer == user_id,
-        Task.status == task_status_id
-    ).all()
-    
-    task_status_tabs = []
-    def add_tab(task_status_id, param_value):
-        task_status_tabs.append({
-            "label": convert_task_status_id_to_label(
-                task_status_id,
-                simple_form='сделанные'
-                ),
-            "url": url_for(
+    tasks = []
+    if task_tab == 'freelancer_may_respond':
+        tasks_raw = Task.query.filter(
+            Task.status.in_([PUBLISHED, FREELANCERS_DETECTED])
+        ).all()
+        for task in tasks_raw:
+            responded_freelancers = task.freelancers_who_responded.filter(
+                User.id == user_id
+            ).all()
+            if not responded_freelancers:
+                tasks.append(task)
+    if task_tab == 'freelancer_responded_and_is_waiting_for_approval':
+        tasks_raw = Task.query.filter(
+            Task.status.in_([PUBLISHED, FREELANCERS_DETECTED])
+        ).all()
+        for task in tasks_raw:
+            responded_freelancers = task.freelancers_who_responded.filter(
+                User.id == user_id
+            ).all()
+            if responded_freelancers:
+                tasks.append(task)
+    if task_tab == 'in_work':
+        tasks = Task.query.filter(
+            Task.freelancer == user_id,
+            Task.status == IN_WORK
+        ).all()
+    if task_tab == 'in_review':
+        tasks = Task.query.filter(
+            Task.freelancer == user_id,
+            Task.status == IN_REVIEW
+        ).all()
+    if task_tab == 'done':
+        tasks = Task.query.filter(
+            Task.freelancer == user_id,
+            Task.status == DONE
+        ).all()
+
+    task_tabs = []
+    def add_tab(param_value, label=None):
+        task_tabs.append({
+            'label': f'{label}',
+            'url': url_for(
                 'freelancer.view_freelancer',
                 user_id=user_id,
                 tab=param_value
                 ),
-            "is_selected": task_status_tab == param_value,
+            'is_selected': task_tab == param_value,
             })
     add_tab(
-        task_status_id=PUBLISHED,
-        param_value='published'
+        label='Доступные для Участия',
+        param_value='freelancer_may_respond'
         )
     add_tab(
-        task_status_id=FREELANCERS_DETECTED,
-        param_value='freelancers_detected'
+        label='Ожидающие подтверждения Участия',
+        param_value='freelancer_responded_and_is_waiting_for_approval'
         )
     add_tab(
-        task_status_id=IN_WORK,
+        label=convert_task_status_id_to_label(
+            IN_WORK,
+            simple_form='сделанные'
+            ),
         param_value='in_work'
         )
     add_tab(
-        task_status_id=IN_REVIEW,
+        label=convert_task_status_id_to_label(
+            IN_REVIEW,
+            simple_form='сделанные'
+            ),
         param_value='in_review'
         )
     add_tab(
-        task_status_id=DONE,
+        label=convert_task_status_id_to_label(
+            DONE,
+            simple_form='сделанные'
+            ),
         param_value='done'
-        )
-    add_tab(
-        task_status_id=STOPPED,
-        param_value='stopped'
         )
 
     return render_template(
@@ -92,5 +126,5 @@ def view_freelancer(user_id):
         title=title,
         tasks=tasks,
         user_id=user_id,
-        task_status_tabs=task_status_tabs
+        task_tabs=task_tabs
         )

@@ -26,9 +26,9 @@ def view_customer(user_id):
     if int(current_user.get_id()) != user_id:
         flash('Это не твой id')
         return redirect(url_for('sign.index'))
-    title = 'Заказчик'
+    title = 'Личный кабинет Заказчика'
     
-    task_status_tab = request.args.get('tab')
+    task_tab = request.args.get('tab')
     mapping = {
         'created': CREATED,
         'published': PUBLISHED,
@@ -38,9 +38,9 @@ def view_customer(user_id):
         'in_review': IN_REVIEW,
         'done': DONE,
     }
-    task_status_id = mapping.get(task_status_tab)
+    task_status_id = mapping.get(task_tab)
     if task_status_id == None:
-        task_status_tab = 'created'
+        task_tab = 'created'
         task_status_id = CREATED
     
     tasks = Task.query.filter(
@@ -48,19 +48,23 @@ def view_customer(user_id):
         Task.status == task_status_id
     ).all()
     
-    task_status_tabs = []
-    def add_tab(task_status_id, param_value):
-        task_status_tabs.append({
-            "label": convert_task_status_id_to_label(
+    task_tabs = []
+    def add_tab(task_status_id, param_value, label=None):
+        if not label == None:
+            label = f'{label}'
+        else:
+            label = convert_task_status_id_to_label(
                 task_status_id,
                 simple_form='сделанные'
-                ),
-            "url": url_for(
+                )
+        task_tabs.append({
+            'label': label,
+            'url': url_for(
                 'customer.view_customer',
                 user_id=user_id,
                 tab=param_value
                 ),
-            "is_selected": task_status_tab == param_value,
+            'is_selected': task_tab == param_value,
             })
     add_tab(
         task_status_id=CREATED,
@@ -96,5 +100,5 @@ def view_customer(user_id):
         title=title,
         tasks=tasks,
         user_id=user_id,
-        task_status_tabs=task_status_tabs
+        task_tabs=task_tabs
         )
