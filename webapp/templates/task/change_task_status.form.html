@@ -8,21 +8,14 @@
         {{ feedback_message }}
       </div>
     {% endif %}
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="alert alert-warning" role="alert">
-          {% for message in messages %}
-            {{ message }}<br>
-          {% endfor %}
+    <section>
+      <form action="{{ form_url }}" method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+          <br>
+          {{ form.submit }}
         </div>
-      {% endif %}
-    {% endwith %}
-    <form action="{{ form_url }}" method="POST">
-      {{ form.hidden_tag() }}
-      <div>
-        <br>
-        {{ form.submit }}
-      </div>
-    </form>
+      </form>
+    </section>
   </div>
 {% endblock page_main_content %}

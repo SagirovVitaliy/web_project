@@ -40,41 +40,6 @@ def get_task_debug_info(task_id):
     return task.generate_level_2_debug_dictionary()
 
 
-@blueprint.route('/customer/<int:user_id>/create_task/', methods=['GET', 'POST'])
-@login_required
-def create_task(user_id):
-    if int(current_user.get_id()) != user_id:
-        flash('Это не твой id')
-        return redirect(url_for('sign.index'))
-    title = 'Создание заказа'
-    form = CreateTaskForm()
-    customer = User.query.get(user_id)
-
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            task = Task(
-                task_name=form.task_name.data,
-                description=form.description.data,
-                price=form.price.data,
-                deadline=form.deadline.data,
-                status=CREATED,
-                customer=customer.id
-            )
-            
-            db.session.add(task)
-            db.session.commit()
-
-            flash('Вы успешно создали заказ!')
-            return redirect(url_for('customer.view_created_tasks', user_id=user_id))
-
-    return render_template(
-        'task/create_task.html',
-        title=title,
-        form=form,
-        user_id=user_id
-        )
-
-
 @blueprint.route('/tasks/add', methods=['GET', 'POST'])
 @login_required
 def add_task():

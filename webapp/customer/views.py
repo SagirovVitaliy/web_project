@@ -1,122 +1,104 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from webapp.db import db, Task, TaskStatus, User
+from webapp.db import (
+    db,
+    Task,
+    TaskStatus,
+    User,
+    convert_task_status_id_to_label,
+
+    CREATED,
+    PUBLISHED,
+    FREELANCERS_DETECTED,
+    IN_WORK,
+    STOPPED,
+    IN_REVIEW,
+    DONE,
+    )
 from webapp.customer.decorators import customer_required
-from webapp.db import (CREATED, PUBLISHED, FREELANCERS_DETECTED, IN_WORK)
 from flask_login import current_user
 
 blueprint = Blueprint('customer', __name__, url_prefix='/customer')
 
 
-@blueprint.route('/<int:user_id>/', methods=['GET', 'POST'])
+@blueprint.route('/<int:user_id>', methods=['GET', 'POST'])
 @customer_required
-def view_created_tasks(user_id):
+def view_customer(user_id):
     if int(current_user.get_id()) != user_id:
         flash('Это не твой id')
         return redirect(url_for('sign.index'))
-    title = 'Все созданные заказы (статус created)'
-    tasks = Task.query.filter(Task.customer == user_id, Task.status == CREATED).all()
-
-    return render_template('customer/customer.html', title=title, tasks=tasks, user_id=user_id)
-
-
-@blueprint.route('/<int:user_id>/published/', methods=['GET', 'POST'])
-@customer_required
-def view_published_tasks(user_id):
-    if int(current_user.get_id()) != user_id:
-        flash('Это не твой id')
-        return redirect(url_for('sign.index'))
-    title = 'Все опубликованные заказы (статус published)'
-    tasks = Task.query.filter(Task.customer == user_id, Task.status == PUBLISHED).all()
-
-    return render_template('customer/published.html', title=title, user_id=user_id, tasks=tasks)
-
-
-@blueprint.route('/<int:user_id>/task/<int:task_id>/', methods=['GET', 'POST'])
-@customer_required
-def view_tasks(task_id, user_id):
-    if int(current_user.get_id()) != user_id:
-        flash('Это не твой id')
-        return redirect(url_for('sign.index'))
-    title = 'Информация по заказу (здесь мы можем менять с created на published)'
-    task = Task.query.get(task_id)
-    task_name = task.task_name
-    description = task.description
-    price = task.price
-    deadline = task.deadline
-
-    if request.method == 'POST':
-        if task.status == 1:
-            task.status = PUBLISHED
-            db.session.commit()
-            flash('Заказ опубликован')
-        elif task.status == 2:
-            task.status = CREATED
-            db.session.commit()
-            flash('Заказ снят с публикации')
-
-    return render_template(
-        'customer/ct_task_information.html', title=title, task_id=task_id, task_name=task_name, user_id=user_id,
-        description=description, price=price, deadline=deadline, task=task
+    title = 'Личный кабинет Заказчика'
+    
+    task_tab = request.args.get('tab')
+    mapping = {
+        'created': CREATED,
+        'published': PUBLISHED,
+        'freelancers_detected': FREELANCERS_DETECTED,
+        'in_work': IN_WORK,
+        'stopped': STOPPED,
+        'in_review': IN_REVIEW,
+        'done': DONE,
+    }
+    task_status_id = mapping.get(task_tab)
+    if task_status_id == None:
+        task_tab = 'created'
+        task_status_id = CREATED
+    
+    tasks = Task.query.filter(
+        Task.customer == user_id,
+        Task.status == task_status_id
+    ).all()
+    
+    task_tabs = []
+    def add_tab(task_status_id, param_value, label=None):
+        if not label == None:
+            label = f'{label}'
+        else:
+            label = convert_task_status_id_to_label(
+                task_status_id,
+                simple_form='сделанные'
+                )
+        task_tabs.append({
+            'label': label,
+            'url': url_for(
+                'customer.view_customer',
+                user_id=user_id,
+                tab=param_value
+                ),
+            'is_selected': task_tab == param_value,
+            })
+    add_tab(
+        task_status_id=CREATED,
+        param_value='created'
+        )
+    add_tab(
+        task_status_id=PUBLISHED,
+        param_value='published'
+        )
+    add_tab(
+        task_status_id=FREELANCERS_DETECTED,
+        param_value='freelancers_detected'
+        )
+    add_tab(
+        task_status_id=IN_WORK,
+        param_value='in_work'
+        )
+    add_tab(
+        task_status_id=IN_REVIEW,
+        param_value='in_review'
+        )
+    add_tab(
+        task_status_id=DONE,
+        param_value='done'
+        )
+    add_tab(
+        task_status_id=STOPPED,
+        param_value='stopped'
         )
 
-
-@blueprint.route('/<int:user_id>/freelancers_detected/', methods=['GET', 'POST'])
-@customer_required
-def view_freelancers_detected_task(user_id):
-    if int(current_user.get_id()) != user_id:
-        flash('Это не твой id')
-        return redirect(url_for('sign.index'))
-    title = 'Все заказы, на которые откликнулись'
-    tasks = Task.query.filter(Task.customer == user_id, Task.status == FREELANCERS_DETECTED).all()
-
-    return render_template('customer/freelancers_detected.html', title=title, user_id=user_id, tasks=tasks)
-
-
-@blueprint.route('/<int:user_id>/ready_fl/<int:task_id>/', methods=['GET', 'POST'])
-@customer_required
-def view_ready_fl(user_id, task_id):
-    if int(current_user.get_id()) != user_id:
-        flash('Это не твой id')
-        return redirect(url_for('sign.index'))
-    title = 'Все откликнувшиеся на заказ'
-    task = Task.query.get(task_id)
-    freelancers = task.freelancers_who_responded.all()
-
-    return render_template('customer/ready_fl.html', title=title, task_id=task_id, user_id=user_id, freelancers=freelancers)
-
-
-@blueprint.route('/<int:user_id>/ready_fl/<int:task_id>/selected_fl/<int:fl_id>', methods=['GET','POST'])
-@customer_required
-def select_fl(user_id, task_id, fl_id):
-    if int(current_user.get_id()) != user_id:
-        flash('Это не твой id')
-        return redirect(url_for('sign.index'))
-    title = 'Информация по фрилнсеру'
-    freelancer = User.query.get(fl_id)
-    user_name = freelancer.user_name
-    public_bio = freelancer.public_bio
-
-    if request.method == 'POST':
-        task = Task.query.get(task_id)
-        status = TaskStatus.query.filter(TaskStatus.id == IN_WORK).one()
-        task.status = status.id
-        task.freelancer = fl_id
-        db.session.commit()
-        flash('Теперь ваш заказ в работе')
-
     return render_template(
-        'customer/selected_fl.html', title=title, task_id=task_id, user_id=user_id,
-        user_name =user_name, public_bio=public_bio, fl_id=fl_id
+        'customer/customer.html',
+        title=title,
+        tasks=tasks,
+        user_id=user_id,
+        task_tabs=task_tabs
         )
-
-
-@blueprint.route('/<int:user_id>/in_work/', methods=['GET', 'POST'])
-@customer_required
-def view_in_work_tasks(user_id):
-    if int(current_user.get_id()) != user_id:
-        flash('Это не твой id')
-        return redirect(url_for('sign.index'))
-    title = 'Все заказы в работе'
-    tasks = Task.query.filter(Task.customer == user_id, Task.status == IN_WORK).all()
-
-    return render_template('customer/in_work.html', title=title, tasks=tasks, user_id=user_id)

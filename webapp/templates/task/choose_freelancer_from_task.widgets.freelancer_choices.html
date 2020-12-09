@@ -1,9 +1,9 @@
-{# На выбор - пользователи чтобы отцепить.
+{# На выбор - пользователи чтобы выбрать.
   
-  Как использовать темплайты виджета value_html_inspector:
-  В своём коде подключите
-    {% set user_choices = example_variable %}
-    {% include 'debug_tools/value_html_inspector.html' %}
+  Как использовать виджет:
+  В своём темплайте подключите
+    {% set user_choices = freelancer_choices %}
+    {% include 'task/choose_freelancer_from_task.widgets.freelancer_choices.html' %}
   
   где example_variable - это переменная которая содержит список Пользователей.
 #}

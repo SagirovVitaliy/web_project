@@ -9,7 +9,7 @@ blueprint = Blueprint('sign', __name__)
 
 @blueprint.route('/sign_up', methods=['GET', 'POST'])
 def sign_up():
-    title = 'Регистрация пользователя'
+    title = 'Регистрация'
     form = RegistrationForm()
     form.role.choices = [(role.id, role.role) for role in UserRole.query.all()]
 
@@ -48,9 +48,9 @@ def sign_in():
         flash('Вы уже вошли')
         user = User.query.get(current_user.get_id())
         if user.role == CUSTOMER:
-            return redirect(url_for('customer.view_created_tasks', user_id=user.id))
+            return redirect(url_for('customer.view_customer', user_id=user.id))
         elif user.role == FREELANCER:
-            return redirect(url_for('freelancer.view_tasks_for_fl', user_id=user.id))
+            return redirect(url_for('freelancer.view_freelancer', user_id=user.id))
 
     title = 'Вход'
     form = LoginForm()
@@ -63,9 +63,9 @@ def sign_in():
                 flash('Вы успешно зашли на сайт')
                 user_id = user.id
                 if user.role == CUSTOMER:
-                    return redirect(url_for('customer.view_created_tasks', user_id=user_id))
+                    return redirect(url_for('customer.view_customer', user_id=user_id))
                 elif user.role == FREELANCER:
-                    return redirect(url_for('freelancer.view_tasks_for_fl', user_id=user_id))
+                    return redirect(url_for('freelancer.view_freelancer', user_id=user_id))
                 else:
                     flash('Неправильное имя или пароль')
                     return render_template('sign/sign_in.html', title=title, form=form)

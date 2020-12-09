@@ -2,44 +2,37 @@
 
 {% block page_main_content %}
   <div class="container">
-    <br>
     <section>
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a class="nav-link active" href="{{ url_for('customer.view_created_tasks', user_id=user_id) }}">Созданные</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('customer.view_published_tasks', user_id=user_id) }}">Опубликованные</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('customer.view_freelancers_detected_task', user_id=user_id) }}">Активные</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('customer.view_in_work_tasks', user_id=user_id) }}">В работе</a>
-        </li>
-      </ul>
+      {% if ((task_tabs is iterable) and
+             (task_tabs|length > 0)) %}
+        <ul class="nav nav-tabs">
+          {% for task_tab in task_tabs %}
+            <li class="nav-item">
+              <a
+                class="nav-link {{ 'active' if task_tab.is_selected }}"
+                href="{{ task_tab.url }}"
+                >
+                {{ task_tab.label }}
+                </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </section>
     <section>
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <br>
-          <div class="alert alert-primary" role="alert">
-            {% for message in messages %}
-              {{ message }}<br>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
       <br>
       {% for task in tasks %}
-        <a href="{{ url_for('customer.view_tasks', task_id = task.id, user_id=user_id) }}">
-          Название: {{ task.task_name }}, Цена: {{ task.price }}, Дедлайн: {{ task.deadline.strftime('%d.%m.%Y') }}
-        </a><br>
+        <a href="{{ url_for('task.view_task', task_id=task.id) }}">
+          Название: {{ task.task_name }},
+          Цена: {{ task.price }},
+          Дедлайн: {{ task.deadline.strftime('%d.%m.%Y') }}
+        </a>
+        <br>
         <hr>
       {% else %}
-        <div class="alert">
-          В этом разеле нет Задач
-        </div>
+          В этом разделе нет Задач
+          <br>
+          <hr>
       {% endfor %}
     </section>
     <section>
